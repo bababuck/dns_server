@@ -1,0 +1,9 @@
+# DNS Server  
+Ryan Buchner  
+rabuchner@ucdavis.edu  
+
+### Question  
+
+How can we best develop a recursive DNS server that will be robust to denial of service attacks through replicating data across many copies and balancing load across the copies? Knowing this, how can we then attack this server with a denial of service attack to overwhelm the server most efficiently?
+
+This will primarily be a programming project.
