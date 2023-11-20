@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #define PORT_NUM 1053 // 53 is priviliged
 #define MAX_DNS_SIZE 512
@@ -49,6 +50,8 @@ void setup_server() {
     perror("recvfrom");
     exit(5);
   }
+
+  close(socket_info);
 }
 
 int main(int argc, char *argv[]) {
