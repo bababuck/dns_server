@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 
+#define PORTNUM 1053 // 53 is priviliged
+
 typedef struct sockaddr_in sockaddr_in_t;
 typedef struct sockaddr sockaddr_t;
 
@@ -21,7 +23,7 @@ void setup_server() {
   sockaddr_in_t server;
   server.sin_addr.s_addr = INADDR_ANY; // Any addresses
   server.sin_family = AF_INET; // Internet Protocol v4 addresses
-  server.sin_port = 1053; // 53 is priviliged
+  server.sin_port = PORT_NUM;
 
   // Bind socket to requested port
   if (bind(socket_info, (sockaddr_t *) &server, sizeof(server)) < 0) {
@@ -36,6 +38,11 @@ void setup_server() {
   }
 
   printf("Port assigned: %d\n", server.sin_port);
+
+  if (server.sin_port != PORT_NUM) {
+    perror("PORT_NUM unavailable");
+    exit(4);
+  }
 }
 
 int main(int argc, char *argv[]) {
