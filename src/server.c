@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 
 #define PORTNUM 1053 // 53 is priviliged
-
+#define MAX_DNS_SIZE 512
 typedef struct sockaddr_in sockaddr_in_t;
 typedef struct sockaddr sockaddr_t;
 
@@ -42,6 +42,12 @@ void setup_server() {
   if (server.sin_port != PORT_NUM) {
     perror("PORT_NUM unavailable");
     exit(4);
+  }
+
+  char dns_message[MAX_DNS_SIZE];
+  if(recvfrom(socket, dns_message, MAX_DNS_SIZE, 0, NULL, NULL) < 0) {
+    perror("recvfrom");
+    exit(5);
   }
 }
 
