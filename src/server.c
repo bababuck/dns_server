@@ -33,7 +33,7 @@ void setup_server() {
 
   socklen_t length = sizeof(sockaddr_in_t);
   if (getsockname(socket_info, (sockaddr_t *) &server, &length) < 0) {
-    perror("getsockname()");
+    perror("getsockname");
     exit(3);
   }
 
