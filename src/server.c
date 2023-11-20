@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 
-#define PORTNUM 1053 // 53 is priviliged
+#define PORT_NUM 1053 // 53 is priviliged
 #define MAX_DNS_SIZE 512
 typedef struct sockaddr_in sockaddr_in_t;
 typedef struct sockaddr sockaddr_t;
