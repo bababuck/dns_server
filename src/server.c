@@ -46,7 +46,7 @@ void setup_server() {
   }
 
   char dns_message[MAX_DNS_SIZE];
-  if(recvfrom(socket, dns_message, MAX_DNS_SIZE, 0, NULL, NULL) < 0) {
+  if(recvfrom(socket_info, dns_message, MAX_DNS_SIZE, 0, NULL, NULL) < 0) {
     perror("recvfrom");
     exit(5);
   }
