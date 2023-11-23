@@ -15,6 +15,7 @@
  */
 typedef struct {
   void *queue;
+  void *lock;
   char *testname;
   int socket;
   sockaddr_in_t *destaddr;
@@ -40,4 +41,15 @@ uint8_t recieve_generated_req(uint8_t id);
  *
  * @results The newly created scoreboard
  */
-scoreboard_t create_scoreboard(char *testname);
+scoreboard_t* create_scoreboard(char *testname);
+
+/**
+ * Destroy a scoreboard
+ *
+ * Kills and closes threads and sockets.
+ *
+ * @param scoreboard: Object to destroy
+ *
+ * @returns Error code, 0 if successful
+ */
+uint8_t destroy_scoreboard(scoreboard_t *scoreboard);
