@@ -24,7 +24,7 @@ The generator module will be the main hub for testing the DNS system. It will be
 
 `generator.h`
 ```c
-
+xxx
 ```
 
 #### Router
@@ -68,7 +68,7 @@ Associated with a DNS server, handles, the files and hash tables for lookups, as
 
 `coms.h`
 ```c
-
+xxx
 ```
 
 ### Scoreboard
