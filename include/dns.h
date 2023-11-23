@@ -60,7 +60,7 @@ typedef struct {
  * @param query: is this a query or a response
  * @param id: ID of the message
  * @param domain: domain name of the message
- * @param domain: IP address if a response
+ * @param ip: IP address if a response
  *
  * @returns Length of message, 0 if error
  */
@@ -70,10 +70,9 @@ uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, ch
  * Parse a DNS message.
  *
  * @param message: DNS message to parse
- * @param header: header information
- * @param id: ID of the message
- * @param domain: domain name of the message
- * @param domain: IP address if a response
+ * @param header: Found header information
+ * @param question: Found question information
+ * @param answer: Found answer information
  *
  * @returns Error code, 0 if successful
  */
