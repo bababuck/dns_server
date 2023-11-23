@@ -14,18 +14,26 @@ My final product will include the DNS system as well instructions to build and r
 
 ### System Design
 
-The general system design is outlined in the following sketch, and a in depth breakdown of the individual components as well as their API's are shown below:
-
-
+The general system design is outlined in the following sketch, and a in depth breakdown of the individual components as well as their API's are shown below. The components are designed such that they can sit on the same or different computers. The scoreboard and generator should be linked together. Certain functionality of the testing, however, requires that all of the modules run on the same computer and interact via locally (the backdoors the generator/scoreboard use to probe the other components) (this may change if I have time to make this functionality interact via sockets). I am still in the process of modifying everything to switch from communicating via software to communicating via sockets.
 
 
 #### Generator
+
+The generator module will be the main hub for testing the DNS system. It will be responsible for generating stimulus as well as setting up the system for a given trial. It is designed to run on the same system and the scoreboard and will interact with the scoreboard locally. In addition, many of it's backdoor funtions will only be available if the components are local to the system.
+
+Please note for the following header file I included extra functions that do not belong in then API to show the functionality of testing proposed.
+
+`generator.h`
+```c
+
+```
+
 
 #### Router
 
 #### RRL
 
-The RRL module will sit inside the Router, and when a request comes in it 
+The RRL module will sit inside the Router, and when a request comes in it will be prompted by the router to decide if the request should be dropped or not.
 `rrl.h`
 ```c
 /**
@@ -42,6 +50,8 @@ The RRL module will sit inside the Router, and when a request comes in it
  * This module can either sit inside the router or inside individual DNS modules.
  */
 
+#pragma once
+
 #include <boolean.h>
 
 /**
@@ -55,8 +65,6 @@ The RRL module will sit inside the Router, and when a request comes in it
  */
 bool check_lookup(char* ip_address);
 ```
-
-####
 
 ### Current Status
 

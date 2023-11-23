@@ -69,6 +69,22 @@ if (header->qr) {
   uint16_t arcount : 16;
 }
 
+bool write_header(uint8_t raw_message[8], header_t *header) {
+  ((uint16_t*) raw_message) = header->id;
+  raw_message[2] =
+    header->qr << 7 &
+    header->opcode << 3 &
+    header->aa << 2 &
+    header->tc << 1 &
+    header->rd << 0;
+  raw_message[3] =
+    header->ra << 7 &
+    header->z << 4 &
+    header->rcode;
+    ((uint16_t*) raw_message)[0] = header->id;
+  raw_message
+}
+
 typedef char* ip_t;
 
 typedef struct {
