@@ -27,7 +27,6 @@ The generator module will be the main hub for testing the DNS system. It will be
 
 ```
 
-
 #### Router
 
 The router is responsible for forwarding requests to an appropriate DNS server. This would normally be done by an actual router, but for the sake of the project we implemented this in software. By implementing in software, it allows us to take performance measurements easier as well.
@@ -60,9 +59,27 @@ Each DNS server is responsible for it's own `host.txt` file, a `changelog` and `
 
 `dns_server.h`
 ```c
+xxx
+```
+
+### Communications
+
+Associated with a DNS server, handles, the files and hash tables for lookups, as well as for communicating with the other servers communications modules.
+
+`coms.h`
+```c
+
+```
+
+### Scoreboard
+
+Matches up requests from the generator with response from the DNS servers to measure correctness and performance.
+
+`scoreboard.h`
+```c
 
 ```
 
 ### Current Status
 
-As of today, I have completed the a base implementation of the individual components of the above system, including the generator and scoreboard modules, and I'm still in the process of unit testing those components. I have not implemented any full scale tests yet, but as I described in the design section, I have brainstormed the set of tests I would like to complete.
+As of today, I have completed the a base implementation of the individual components of the above system, including the generator and scoreboard modules, and I'm still in the process of testing those components at the individual level. I have not implemented any full scale tests yet, but as I described in the design section, I have brainstormed the set of tests I would like to complete.

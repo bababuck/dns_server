@@ -31,7 +31,7 @@ typedef enum {
 typedef struct {
   router_mode_t mode;
   rrl_t *rrl;
-  dns_t **servers;
+  dns_server_t **servers;
 } router_t;
 
 /**
@@ -62,7 +62,7 @@ uint8_t destroy_router(router_t *router);
  *
  * @returns Error code, 0 is successful
  */
-uint8_t add_dns_server(router_t *router, dns_t *dns);
+uint8_t add_dns_server(router_t *router, dns_server_t *dns);
 
 /**
  * Send a test to each DNS server to get it's response time
