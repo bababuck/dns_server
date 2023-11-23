@@ -52,8 +52,9 @@ uint8_t destroy_rrl(rrl_t *rrl);
  *
  * Increments the internal counter for the requested address.
  *
+ * @params rrl: the RRL object to lookup in
  * @param ip_address: The ip_address to be checked.
  *
  * @returns True if the requested IP address has passed its threshold
  */
-bool check_lookup(char* ip_address);
+bool check_lookup(rrl_t *rrl, char* ip_address);
