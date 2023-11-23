@@ -563,9 +563,9 @@ As of today, I have completed a base implementation almost all of the individual
 
 I have layed out a schedule for the completion of the remaineder of the project:
 
-Tasks:
-[] Working system with single DNS server, Nov. 25
-[] Working system with multiple DNS server, Nov. 27
-[] Implement security extensions (need to ask questions at office hours), Dec 1
-[] Run on multiple computers, Dec 5
-[] Gather results, Dec 7
+Tasks:  
+- [] Working system with single DNS server, Nov. 25  
+- [] Working system with multiple DNS server, Nov. 27  
+- [] Implement security extensions (need to ask questions at office hours), Dec 1  
+- [] Run on multiple computers, Dec 5  
+- [] Gather results, Dec 7
