@@ -16,12 +16,11 @@ My final product will include the DNS system as well instructions to build and r
 
 The general system design is outlined in the following sketch, and a in depth breakdown of the individual components as well as their API's are shown below. The components are designed such that they can sit on the same or different computers. The scoreboard and generator should be linked together. Certain functionality of the testing, however, requires that all of the modules run on the same computer and interact via locally (the backdoors the generator/scoreboard use to probe the other components) (this may change if I have time to make this functionality interact via sockets). I am still in the process of modifying everything to switch from communicating via software to communicating via sockets.
 
+Please note for the following header files embedded I included extra functions that do not belong in then API to show the functionality and testing.
 
 #### Generator
 
 The generator module will be the main hub for testing the DNS system. It will be responsible for generating stimulus as well as setting up the system for a given trial. It is designed to run on the same system and the scoreboard and will interact with the scoreboard locally. In addition, many of it's backdoor funtions will only be available if the components are local to the system.
-
-Please note for the following header file I included extra functions that do not belong in then API to show the functionality of testing proposed.
 
 `generator.h`
 ```c
@@ -31,39 +30,37 @@ Please note for the following header file I included extra functions that do not
 
 #### Router
 
+The router is responsible for forwarding requests to an appropriate DNS server. This would normally be done by an actual router, but for the sake of the project we implemented this in software. By implementing in software, it allows us to take performance measurements easier as well.
+
+`router.h`
+```c
+xxx
+```
+
 #### RRL
 
 The RRL module will sit inside the Router, and when a request comes in it will be prompted by the router to decide if the request should be dropped or not.
 `rrl.h`
 ```c
-/**
- * Response rate limititing (RRL) module tracks the frequency of requests from different IPs.
- *
- * RRL is used to protect users from DNS amplification attacks, as a given IP
- * address will only be able to recieve so many repsonses for our server.
- *
- * This RRL is implemented quite simply, using a window of 15 seconds and reseting
- * the counter every time the window closes. This is handled internally via callbacks.
- *
- * The counter is impelemented via a hash table, without any locking for multithreading.
- *
- * This module can either sit inside the router or inside individual DNS modules.
- */
 
-#pragma once
+```
 
-#include <boolean.h>
+### DNS
 
-/**
- * Check whether a given IP has been used too frequently.
- *
- * Increments the internal counter for the requested address.
- *
- * @param ip_address: The ip_address to be checked.
- *
- * @returns True if the requested IP address has passed its threshold
- */
-bool check_lookup(char* ip_address);
+This is the library I created to give me basic DNS functionality. It allows for easy creation and parsing of DNS messages. It doesn't deal with any of the socket programming though, see `dns_server.h` for that.
+
+`dns.h`
+```c
+
+```
+
+### DNS Server
+
+Each DNS server is responsible for it's own `host.txt` file, a `changelog` and `DNSSEC` information (I have not yet implemented DNSSEC). In addition, it is accessible via the network to be requested to make changes to it's host file. The changes are logged and forwarded to the other servers via a 3-stage commit. In addition, other servers that recently came online may request for either the most recent changes or the entire `hosts.txt`, depending when they came online. All of the data is stored in the communication module, including the hash table used for DNS lookups.
+
+`dns_server.h`
+```c
+
 ```
 
 ### Current Status
