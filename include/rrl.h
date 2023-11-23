@@ -15,6 +15,37 @@
 #pragma once
 
 #include <boolean.h>
+#include <stdint.h>
+
+/**
+ * Contains all the information needed for RRL.
+ *
+ * Uses a hash table to perform the lookups.
+ *
+ * Locks the hash table during refresh.
+ */
+typedef struct {
+  void *ip_hash_table;
+  void *mutex;
+} rrl_t;
+
+/**
+ * Creates a rrl object.
+ *
+ * On creation, starts a thread that will refresh the RRL every minute.
+ *
+ * @returns newly allocated/initialized rrl object
+ */
+rrl_t* create_rrl();
+
+/**
+ * Free all the memory associated with an RRL object.
+ *
+ * @params rrl: the RRL object to destroy
+ *
+ * @returns Error code, 0 is successful
+ */
+uint8_t destroy_rrl(rrl_t *rrl);
 
 /**
  * Check whether a given IP has been used too frequently.

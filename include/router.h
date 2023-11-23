@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include "rrl.h"
 #include "dns_server.h"
 
@@ -41,6 +43,16 @@ typedef struct {
  * @returns A dynamically created and initialized router
  */
 router_t* create_router(router_mode_t mode, rrl_t *rrl);
+
+/**
+ * Free the memory associated with a given router.
+ *
+ * Does not delete the associated servers.
+ * Does delete the RRL object.
+ *
+ * @returns Error code, 0 is successful
+ */
+uint8_t destroy_router(router_t *router);
 
 /**
  * Add a new DNS server to the rotation.

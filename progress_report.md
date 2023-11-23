@@ -42,7 +42,7 @@ xxx
 The RRL module will sit inside the Router, and when a request comes in it will be prompted by the router to decide if the request should be dropped or not.
 `rrl.h`
 ```c
-
+xxx
 ```
 
 ### DNS
