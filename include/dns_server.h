@@ -31,9 +31,9 @@ typedef struct {
  *
  * Setups needed sockets and threads.
  *
- * @params scoreboard_ip
- * @params scoreboard_port
- * @params recieving_port
+ * @params scoreboard_ip: IP address of the scoreboard
+ * @params scoreboard_port: Port to send data to scoreboard
+ * @params recieving_port: Port to recieve requests from router
  *
  * @returns newly created DNS server
  */
@@ -53,9 +53,10 @@ uint8_t destroy_dns_server(dns_server_t *dns);
 /**
  * Recieve a request from the router.
  *
+ * @params dns: DNS server to handle the request
  * @params message: DNS message to parse
  * @params src_info: Information about where to respond to, only used for router queries.
  *
  * @returns Error code, 0 if successful
  */
-uint8_t recieve_request(uint8_t *message, sockaddr_in_t *src_info);
+uint8_t recieve_request(dns_server_t *dns, uint8_t *message, sockaddr_in_t *src_info);
