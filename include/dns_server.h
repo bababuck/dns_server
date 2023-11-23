@@ -11,7 +11,6 @@
 #include "dns.h"
 #include "coms.h"
 #include "server.h"
-#include "scoreboard.h"
 
 /**
  * A DNS server.

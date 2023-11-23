@@ -12,6 +12,8 @@
 
 #include <stdint.h>
 
+#include "server.h"
+
 /**
  * A single communications object.
  *
