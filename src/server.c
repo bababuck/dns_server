@@ -1,33 +1,14 @@
-/**
- * Base code for the server to interface with DNS requests.
- *
- * Use UDP protocol to communicate DNS responses.
- */
+#include "../include/server.h"
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
-#include "./dns.c"
-
-#define PORT_NUM 1053 // 53 is priviliged
-#define MAX_DNS_SIZE 512
-typedef struct sockaddr_in sockaddr_in_t;
-typedef struct sockaddr sockaddr_t;
-
-void setup_server() {
-  int socket_info = socket(AF_INET, SOCK_DGRAM, 0); // UDP Socket
+int setup_server(uint8_t port_num, char* ip, sockaddr_in_t *server, int protocol) {
+  int socket_info = socket(AF_INET, protocol, 0);
   if (socket_info < 0) {
     perror("socket");
     exit(1);
   }
-  sockaddr_in_t server;
-  server.sin_addr.s_addr = INADDR_ANY; // Any addresses
-  server.sin_family = AF_INET; // Internet Protocol v4 addresses
-  server.sin_port = htons(PORT_NUM);
+  server->sin_addr.s_addr = INADDR_ANY; // Any addresses
+  server->sin_family = AF_INET; // Internet Protocol v4 addresses
+  server->sin_port = htons(port_num);
 
   // Bind socket to requested port
   if (bind(socket_info, (sockaddr_t *) &server, sizeof(server)) < 0) {
@@ -41,43 +22,48 @@ void setup_server() {
     exit(3);
   }
 
-  printf("Port assigned: %d\n", server.sin_port);
-
-  if (server.sin_port != htons(PORT_NUM)) {
-    perror("PORT_NUM unavailable");
+  if (server->sin_port != htons(port_num)) {
+    perror("port_num unavailable");
     exit(4);
   }
 
-  sockaddr_in_t dns_server;
-  dns_server.sin_family  = AF_INET;  // Internet Domain
-  dns_server.sin_port = htons(53); // Server Port
-  dns_server.sin_addr.s_addr = inet_addr("8.8.8.8"); /* Server's Address   */
+  return socket_info;
+}
 
-  uint8_t request[64];
-  craft_message(request);
-  for (int i=0; i<30; ++i) {
-    printf("%02x ",request[i]);
-  }
-  printf("\n");
-  if (sendto(socket_info, request, 30, 0, (sockaddr_t *) &dns_server, sizeof(dns_server)) < 0) {
+uint8_t send_packet(uint8_t port_num, char *ip, int socket_info, uint8_t *message, uint8_t message_len) {
+  sockaddr_in_t dest_server;
+  dest_server.sin_family  = AF_INET;  // Internet Domain
+  dest_server.sin_port = htons(port_num); // Server Port
+  dest_server.sin_addr.s_addr = inet_addr(ip); // Server's Address
+
+  if (sendto(socket_info, message, message_len, 0, (sockaddr_t *) &dest_server, sizeof(dest_server)) < 0) {
     perror("sendto()");
     exit(5);
   }
+  return 0;
+}
 
-  uint8_t dns_message[MAX_DNS_SIZE];
-  if(recvfrom(socket_info, dns_message, MAX_DNS_SIZE, 0, NULL, NULL) < 0) {
+uint8_t setup_response_thread(pthread_t *thread, void *(receive_routine)(void*), void *arg) {
+  if (pthread_create(thread, NULL, receive_routine, arg) != 0) {
+    perror("pthread_create");
+    exit(6);
+  }
+  return 0;
+}
+
+uint8_t kill_response_thread(pthread_t *thread) {
+  if (pthread_kill(*thread, 0) != 0) {
+    perror("pthread_kil");
+    exit(7);
+  }
+  return 0;
+}
+
+uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info) {
+  uint8_t bytes_recieved;
+  if((bytes_recieved = recvfrom(socket_info, buffer, length, 0, NULL, NULL)) < 0) {
     perror("recvfrom");
     exit(5);
   }
-  for (int i=0; i<30; ++i) {
-    printf("%02x ", dns_message[i]);
-  }
-  printf("\n");
-
-  close(socket_info);
-}
-
-int main(int argc, char *argv[]) {
-  setup_server();
-  return 0;
+  return bytes_recieved;
 }
