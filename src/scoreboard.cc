@@ -1,53 +1,80 @@
+#include <stdint.h>
 #include <chrono>
 #include <mutex>
 #include <deque>
 
-//#include "dns.h"
+#include "../include/dns.h"
 #include "../include/scoreboard.h"
 
 typedef struct {
   double time;
-  uint8_t id;
+  uint16_t id;
 } results_t;
 
-const std::chrono::time_point<std::chrono::steady_clock> start_time;
+std::chrono::time_point<std::chrono::steady_clock> start_time;
 
 void init_scoreboard() {
   start_time = std::chrono::steady_clock::now();
 }
 
-uint8_t recieve_generated_req(scoreboard_t *s, uint8_t id) {
-  auto curr_time = std::chrono::system_clock::now();
+uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id) {
+  const std::chrono::time_point<std::chrono::steady_clock>  curr_time = std::chrono::steady_clock::now();
   std::chrono::duration<double> elapsed_seconds = curr_time - start_time;
 
-  const std::lock_guard<std::mutex> lock(*((std::mutex) s->mutex));
-  ((std::deque<results_t>) (s->queue)).push_back({elapsed_seconds.count(), id});
+  const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
+  ((std::deque<results_t>*) (s->queue))->push_back({elapsed_seconds.count(), id});
   return 0;
 }
 
-uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t *message) {
-  auto curr_time = std::chrono::system_clock::now();
+/**
+ * Response handler to be run on the response handling thread.
+ *
+ * @params _scoreboard: Scoreboard to update results to
+ */
+void* dns_response_handler(void *_scoreboard) {
+  scoreboard_t *scoreboard = (scoreboard_t*) _scoreboard;
+  header_t dns_header;
+  uint8_t buffer[MAX_DNS_BYTES];
+  while (true) { // Run until thread killed
+    recieve_message(buffer, MAX_DNS_BYTES, scoreboard->socket);
+    parse_message(buffer, &dns_header, NULL, NULL);
+    recieve_generated_req(scoreboard, dns_header.id);
+  }
+  return NULL;
+}
+
+uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id) {
+  const std::chrono::time_point<std::chrono::steady_clock>  curr_time = std::chrono::steady_clock::now();
   std::chrono::duration<double> elapsed_seconds = curr_time - start_time;
-  const std::lock_guard<std::mutex> lock(*((std::mutex) s->mutex));
-  for (auto it = deque.cbegin(); it != deque.cend(); ++it) {
-    //    if (it->id == header->id) {
+  const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
+  for (auto it = ((std::deque<results_t>*) (s->queue))->begin(); it != ((std::deque<results_t>*) (s->queue))->end(); ++it) {
+    if (it->id == id) {
       it->time = elapsed_seconds.count() - it->time;
       return 0;
     }
-  //  }
+  }
   return 1;
 }
 
 scoreboard_t* create_scoreboard(char *testname) {
-  scoreboard_t* s = malloc(sizeof(scoreboard_t));
+  scoreboard_t* s = (scoreboard_t*) malloc(sizeof(scoreboard_t));
   s->testname = testname;
   s->lock = (void*) new std::mutex();
-  s->queue = (void*) new std::queue<results_t>();
+  s->queue = (void*) new std::deque<results_t>();
+  s->dns_response_thread = (pthread_t*) malloc(sizeof(pthread_t));
+  s->socket = setup_server((uint8_t) DNS_PORT_NUM, SOCK_DGRAM);
+  get_ip();
+
+  // Starting response thread must be done last
+  setup_response_thread(s->dns_response_thread, &dns_response_handler, s);
+  return s;
 }
 
 uint8_t destroy_scoreboard(scoreboard_t *s) {
   free(s->testname);
   free(s->destaddr);
-  delete s->mutex;
-  delete s->queue;
+  delete (std::mutex*) s->lock;
+  delete (std::deque<results_t>*) s->queue;
+  kill_response_thread(s->dns_response_thread);
+  return 0;
 }

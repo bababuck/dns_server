@@ -21,12 +21,12 @@ typedef struct sockaddr sockaddr_t;
 /**
  * Create and bind a socket.
  *
- * @param port_num
- * @param ip
- * @param sockaddr:
+ * @param port_num: port number to use
  * @param protocol: SOCK_STREAM (TCP) or SOCK_DGRAM (UDP)
+ *
+ * @returns socket descriptor
  */
-int setup_server(uint8_t port_num, char* ip, sockaddr_in_t *server, int protocol);
+int setup_server(uint8_t port_num, int protocol);
 
 /**
  * Send a packet from a already bound socket.
@@ -74,3 +74,5 @@ uint8_t kill_response_thread(pthread_t *thread);
  * @returns Lenght of message recieve
  */
 uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info);
+
+void get_ip();

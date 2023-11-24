@@ -47,7 +47,7 @@ typedef struct {
 typedef struct {
   char *ip;
   uint16_t type;
-  uint16_t class;
+  uint16_t dclass;
   uint32_t ttl;
   uint8_t rdlength;
   uint8_t *rdata;

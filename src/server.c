@@ -1,14 +1,16 @@
 #include "../include/server.h"
 
-int setup_server(uint8_t port_num, char* ip, sockaddr_in_t *server, int protocol) {
+int setup_server(uint8_t port_num, int protocol) {
   int socket_info = socket(AF_INET, protocol, 0);
   if (socket_info < 0) {
     perror("socket");
     exit(1);
   }
-  server->sin_addr.s_addr = INADDR_ANY; // Any addresses
-  server->sin_family = AF_INET; // Internet Protocol v4 addresses
-  server->sin_port = htons(port_num);
+
+  sockaddr_in_t server;
+  server.sin_addr.s_addr = INADDR_ANY; // Any addresses
+  server.sin_family = AF_INET; // Internet Protocol v4 addresses
+  server.sin_port = htons(port_num);
 
   // Bind socket to requested port
   if (bind(socket_info, (sockaddr_t *) &server, sizeof(server)) < 0) {
@@ -22,7 +24,7 @@ int setup_server(uint8_t port_num, char* ip, sockaddr_in_t *server, int protocol
     exit(3);
   }
 
-  if (server->sin_port != htons(port_num)) {
+  if (server.sin_port != htons(port_num)) {
     perror("port_num unavailable");
     exit(4);
   }
@@ -66,4 +68,24 @@ uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info) {
     exit(5);
   }
   return bytes_recieved;
+}
+
+void get_ip() {
+  struct ifaddrs * ifAddrStruct=NULL;
+  struct ifaddrs * ifa=NULL;
+  void * tmpAddrPtr=NULL;
+
+  getifaddrs(&ifAddrStruct);
+  for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+    if (!ifa->ifa_addr) {
+      continue;
+    }
+    if (ifa->ifa_addr->sa_family == AF_INET) { // IP4 Address
+      tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+      char addressBuffer[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+      printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+    }
+  }
+  if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
 }

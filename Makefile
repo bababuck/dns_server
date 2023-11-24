@@ -1,7 +1,7 @@
-all: server.exe
+all:
 
-server.exe: src/server.c
-	gcc src/server.c -o server.exe
+%: src/%.cc
+	g++ -std=c++11 $< -o %.exe
 
-dns.exe: src/dns.c
-	gcc src/dns.c -o dns.exe
+%: src/%.c
+	gcc $< -o %.exe

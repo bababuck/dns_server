@@ -4,8 +4,9 @@
  * Initially just checking to make sure all ID's are recieved.
  */
 
-#pramga once
+#pragma once
 
+#include <pthread.h>
 #include <stdint.h>
 
 #include "server.h"
@@ -19,6 +20,7 @@ typedef struct {
   char *testname;
   int socket;
   sockaddr_in_t *destaddr;
+  pthread_t *dns_response_thread;
 } scoreboard_t;
 
 /**
