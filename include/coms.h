@@ -38,7 +38,7 @@ typedef struct {
  *
  * @returns newly created coms module
  */
-coms_t *create_dns_server(uint8_t id);
+coms_t *create_coms(uint8_t id);
 
 /**
  * Deallocate a coms module
@@ -57,20 +57,11 @@ uint8_t destroy_coms(coms_t *coms);
  * @params coms: coms object to use
  * @params ip: IP address of new module
  * @params id: ID of new module
+ * @params port_num: Port to communicate with other coms module one
  *
  * @returns Error code, 0 if successful
  */
-uint8_t add_coms(coms_t *coms, char *ip, uint8_t id);
-
-/**
- * Delete a coms module.
- *
- * @params coms: coms object to use
- * @params id: ID to delete
- *
- * @returns Error code, 0 if successful
- */
-uint8_t add_coms(coms_t *coms, uint8_t id);
+uint8_t add_coms(coms_t *coms, char *ip, uint8_t id, uint16_t port_num);
 
 /**
  * Request host file update from other coms module.
@@ -98,4 +89,4 @@ uint8_t handle_update_request(coms_t *coms, uint8_t id);
  *
  * @returns IP address as c-string, NULL if not found
  */
-char* translate_ip(coms_t *coms, char* domain);
+const char* translate_ip(coms_t *coms, char* domain);
