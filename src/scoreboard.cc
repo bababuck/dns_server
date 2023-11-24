@@ -33,12 +33,16 @@ uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id) {
  */
 void* dns_response_handler(void *_scoreboard) {
   scoreboard_t *scoreboard = (scoreboard_t*) _scoreboard;
-  header_t dns_header;
+  message_t dns_message;
   uint8_t buffer[MAX_DNS_BYTES];
   while (true) { // Run until thread killed
-    recieve_message(buffer, MAX_DNS_BYTES, scoreboard->socket);
-    parse_message(buffer, &dns_header, NULL, NULL);
-    recieve_generated_req(scoreboard, dns_header.id);
+    uint8_t message_len = recieve_message(buffer, MAX_DNS_BYTES, scoreboard->socket);
+    uint8_t error;
+    if ((error = parse_message(buffer, &dns_message, message_len)) != 0) {
+      perror("Parsing message failed.");
+      exit(1);
+    }
+    recieve_generated_req(scoreboard, dns_message.header.id);
   }
   return NULL;
 }

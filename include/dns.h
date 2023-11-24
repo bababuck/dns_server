@@ -45,13 +45,19 @@ typedef struct {
  * Technically works for all resourse records.
  */
 typedef struct {
-  char *ip;
+  uint16_t name;
   uint16_t type;
   uint16_t dclass;
   uint32_t ttl;
   uint8_t rdlength;
   uint8_t *rdata;
 } answer_t;
+
+typedef struct {
+  header_t header;
+  question_t question;
+  answer_t answer;
+} message_t;
 
 /**
  * Format a message from the given information.
@@ -69,11 +75,10 @@ uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, ch
 /**
  * Parse a DNS message.
  *
+ * @param buffer: DNS message to parse
  * @param message: DNS message to parse
- * @param header: Found header information
- * @param question: Found question information
- * @param answer: Found answer information
+ * @param message_bytes: Number of bytes recieved
  *
  * @returns Error code, 0 if successful
  */
-uint8_t parse_message(uint8_t *message, header_t *header, question_t *question, answer_t *answer);
+uint8_t parse_message(uint8_t *buffer, message_t *message, uint8_t message_bytes);
