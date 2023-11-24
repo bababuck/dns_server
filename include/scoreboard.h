@@ -40,10 +40,11 @@ uint8_t recieve_generated_req(uint8_t id);
  * Creates needed threads and sockets.
  *
  * @param testname: Name of the test for logging
+ * @param dns_port: Port to recieve DNS responses from
  *
  * @results The newly created scoreboard
  */
-scoreboard_t* create_scoreboard(char *testname);
+scoreboard_t* create_scoreboard(char *testname, uint16_t dns_port);
 
 /**
  * Destroy a scoreboard

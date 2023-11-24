@@ -6,6 +6,9 @@
 
 #pragma once
 
+
+#include <stdint.h>
+
 /**
  * Generate a random test of the DNS and log it.
  *

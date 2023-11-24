@@ -1,3 +1,5 @@
+#include <ifaddrs.h>
+
 #include "../include/server.h"
 
 int setup_server(uint8_t port_num, int protocol) {

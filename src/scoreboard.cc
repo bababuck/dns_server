@@ -60,13 +60,13 @@ uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id) {
   return 1;
 }
 
-scoreboard_t* create_scoreboard(char *testname) {
+scoreboard_t* create_scoreboard(char *testname, uint16_t dns_port) {
   scoreboard_t* s = (scoreboard_t*) malloc(sizeof(scoreboard_t));
   s->testname = testname;
   s->lock = (void*) new std::mutex();
   s->queue = (void*) new std::deque<results_t>();
   s->dns_response_thread = (pthread_t*) malloc(sizeof(pthread_t));
-  s->socket = setup_server((uint8_t) DNS_PORT_NUM, SOCK_DGRAM);
+  s->socket = setup_server(dns_port, SOCK_DGRAM);
   get_ip();
 
   // Starting response thread must be done last
