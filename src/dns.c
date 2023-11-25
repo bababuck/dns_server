@@ -6,7 +6,7 @@
 
 #include "../include/dns.h"
 
-uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, char *ip) {
+uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, const char *ip) {
   uint8_t *curr = buffer;
 
   // Header

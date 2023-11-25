@@ -42,7 +42,7 @@ void* dns_response_handler(void *_scoreboard) {
       perror("Parsing message failed.");
       exit(1);
     }
-    recieve_generated_req(scoreboard, dns_message.header.id);
+    recieve_dns_answer(scoreboard, dns_message.header.id);
   }
   return NULL;
 }

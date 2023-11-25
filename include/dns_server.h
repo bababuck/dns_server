@@ -22,7 +22,8 @@
 typedef struct {
   coms_t *coms;
   int socket;
-  sockaddr_in_t *destaddr;
+  char *scoreboard_ip;
+  uint16_t scoreboard_port;
 } dns_server_t;
 
 /**
@@ -54,8 +55,9 @@ uint8_t destroy_dns_server(dns_server_t *dns);
  *
  * @params dns: DNS server to handle the request
  * @params message: DNS message to parse
+ * @params message_bytes: Length of recieved message
  * @params src_info: Information about where to respond to, only used for router queries.
  *
  * @returns Error code, 0 if successful
  */
-uint8_t recieve_request(dns_server_t *dns, uint8_t *message, sockaddr_in_t *src_info);
+uint8_t recieve_request(dns_server_t *dns, uint8_t *message, uint8_t message_bytes, sockaddr_in_t *src_info);

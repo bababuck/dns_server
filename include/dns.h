@@ -70,7 +70,7 @@ typedef struct {
  *
  * @returns Length of message, 0 if error
  */
-uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, char *ip);
+uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, const char *ip);
 
 /**
  * Parse a DNS message.
