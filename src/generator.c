@@ -13,15 +13,19 @@ typedef struct {
   scoreboard_t *scoreboard;
 } generator_t;
 
-generator_t* create_generator();
+generator_t* create_generator(char* testname);
 uint8_t destroy_generator(generator_t *generator);
 uint8_t send_single_test(generator_t *g, uint8_t id);
 uint8_t send_single_test(generator_t *g, uint8_t id);
 uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len);
 
-generator_t* create_generator() {
+int main(int argc, char **argv) {
+  return run_test("my_test");
+}
+
+generator_t* create_generator(char* testname) {
   generator_t *g = malloc(sizeof(generator_t));
-  g->scoreboard = create_scoreboard("my_test", (uint16_t) CLIENT_PORT);
+  g->scoreboard = create_scoreboard(testname, (uint16_t) CLIENT_PORT);
   g->router = create_router(ROUND_ROBIN, NULL);
   dns_server_t *dns_server = create_dns_server(get_ip(), CLIENT_PORT, DNS_PORT_NUM);
   add_dns_server(g->router, dns_server);
@@ -40,7 +44,7 @@ uint8_t destroy_generator(generator_t *generator) {
 }
 
 uint8_t run_test(char *testname) {
-  generator_t *generator = create_generator();
+  generator_t *generator = create_generator(testname);
   send_single_test(generator, 0);
   destroy_generator(generator);
   return 0;
