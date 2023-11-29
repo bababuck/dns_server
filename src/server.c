@@ -1,8 +1,9 @@
 #include <ifaddrs.h>
+#include <string.h>
 
 #include "../include/server.h"
 
-int setup_server(uint8_t port_num, int protocol) {
+int setup_server(uint16_t port_num, int protocol) {
   int socket_info = socket(AF_INET, protocol, 0);
   if (socket_info < 0) {
     perror("socket");
@@ -34,7 +35,7 @@ int setup_server(uint8_t port_num, int protocol) {
   return socket_info;
 }
 
-uint8_t send_packet(uint8_t port_num, char *ip, int socket_info, uint8_t *message, uint8_t message_len) {
+uint8_t send_packet(uint16_t port_num, char *ip, int socket_info, uint8_t *message, uint8_t message_len) {
   sockaddr_in_t dest_server;
   dest_server.sin_family  = AF_INET;  // Internet Domain
   dest_server.sin_port = htons(port_num); // Server Port
@@ -72,13 +73,15 @@ uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info) {
   return bytes_recieved;
 }
 
-void get_ip() {
+char* get_ip() {
   struct ifaddrs * ifAddrStruct=NULL;
   struct ifaddrs * ifa=NULL;
   void * tmpAddrPtr=NULL;
 
   getifaddrs(&ifAddrStruct);
+  char *ip = NULL;
   for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+    free(ip);
     if (!ifa->ifa_addr) {
       continue;
     }
@@ -87,7 +90,9 @@ void get_ip() {
       char addressBuffer[INET_ADDRSTRLEN];
       inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
       printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+      ip = strdup(addressBuffer);
     }
   }
   if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
+  return ip;
 }

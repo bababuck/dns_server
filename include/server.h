@@ -26,7 +26,7 @@ typedef struct sockaddr sockaddr_t;
  *
  * @returns socket descriptor
  */
-int setup_server(uint8_t port_num, int protocol);
+int setup_server(uint16_t port_num, int protocol);
 
 /**
  * Send a packet from a already bound socket.
@@ -40,7 +40,7 @@ int setup_server(uint8_t port_num, int protocol);
  * @returns Error code, 0 is successful
  */
 
-uint8_t send_packet(uint8_t port_num, char *ip, int socket_info, uint8_t *message, uint8_t message_len);
+uint8_t send_packet(uint16_t port_num, char *ip, int socket_info, uint8_t *message, uint8_t message_len);
 
 /**
  * Setup a new response thread for handling incoming messages.
@@ -75,4 +75,4 @@ uint8_t kill_response_thread(pthread_t *thread);
  */
 uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info);
 
-void get_ip();
+char* get_ip();

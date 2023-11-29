@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <boolean.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 /**

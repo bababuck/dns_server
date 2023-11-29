@@ -28,11 +28,12 @@ typedef struct {
  *
  * Will now have to wait for ID to come in from network.
  *
+ * @param scoreboard: scoreboard to check against
  * @param id: ID of the request
  *
  * @returns Error code, 0 if successful
  */
-uint8_t recieve_generated_req(uint8_t id);
+uint8_t recieve_generated_req(scoreboard_t *scoreboard, uint8_t id);
 
 /**
  * Create a new scoreboard to be used for testing.

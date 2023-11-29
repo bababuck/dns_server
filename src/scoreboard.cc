@@ -13,6 +13,8 @@ typedef struct {
 
 std::chrono::time_point<std::chrono::steady_clock> start_time;
 
+uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id);
+
 void init_scoreboard() {
   start_time = std::chrono::steady_clock::now();
 }

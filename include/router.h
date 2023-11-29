@@ -32,6 +32,9 @@ typedef struct {
   router_mode_t mode;
   rrl_t *rrl;
   dns_server_t **servers;
+  uint8_t server_cnt;
+  uint8_t curr_server;
+  int socket;
 } router_t;
 
 /**
@@ -89,12 +92,12 @@ uint64_t query_response_time(router_t *router, uint8_t dns_id);
  * Only forwards the request if RRL allows.
  *
  * @params router: router used to forward the request.
- * @params use_network: if true, send to the DNS servers over the network.
  * @params message: dns request to forward
+ * @params message_len: length of message
  *
  * @returns error code, 0 if successful
  */
-uint8_t forward_request(router_t *router, bool use_network, uint8_t *message);
+uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len);
 
 /**
  * Remove a DNS server from the rotation is response time is too slow.
