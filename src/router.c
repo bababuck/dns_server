@@ -14,6 +14,7 @@ router_t* create_router(router_mode_t mode, rrl_t *rrl) {
   r->server_cnt = 0;
   r->curr_server = 0;
   r->socket = setup_server(ROUTER_PORT_NUM, SOCK_DGRAM);
+  r->resp_thread = malloc(sizeof(pthread_t));
   setup_response_thread(r->resp_thread, &check_servers, (void*) r);
   return r;
 }
