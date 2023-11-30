@@ -67,7 +67,7 @@ uint8_t run_test(char *testname) {
 uint8_t send_single_test(generator_t *g, uint8_t id) {
   recieve_generated_req(g->scoreboard, id);
   uint8_t buffer[MAX_DNS_BYTES];
-  char domain[] = "";
+  char domain[] = "google";
   uint8_t message_len = craft_message(buffer, /*query=*/true, id, /*domain=*/domain, /*ip=*/NULL);
   send_to_router(g, buffer, message_len);
   return 0;

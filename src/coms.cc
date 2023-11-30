@@ -2,17 +2,11 @@
 #include <unordered_map>
 #include <unistd.h>
 
+#include "../include/coms.h"
+
 extern "C" {
 
 typedef std::unordered_map<std::string, std::string> hash_t;
-
-typedef struct {
-  void **coms;
-  uint8_t server_cnt;
-  int socket;
-  uint8_t id;
-  void *ip_hash;
-} coms_t;
 
 coms_t *create_coms(uint8_t id) {
   coms_t *c = (coms_t*) malloc(sizeof(coms_t));
@@ -48,7 +42,9 @@ uint8_t handle_update_request(coms_t *coms, uint8_t id) {
 }
 
 const char* translate_ip(coms_t *coms, char* domain) {
+  printf("DOMANIN %s\n", domain);
   hash_t *ip_hash  = (hash_t *) coms->ip_hash;
+  printf("HASH\n");
   if (ip_hash->count(domain) != 0) {
     return ((*ip_hash)[domain]).c_str();
   }

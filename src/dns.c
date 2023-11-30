@@ -13,7 +13,7 @@ uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, co
   // Header
   header_t h = {
     .id = htons(id),
-    .qr = query,
+    .qr = !query,
     .opcode = 0,
     .aa = 0,
     .tc = 0,

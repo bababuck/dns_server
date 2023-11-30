@@ -3,6 +3,7 @@
 
 #include "../include/dns_server.h"
 #include "../include/dns.h"
+#include "../include/coms.h"
 #include "../include/router.h"
 
 static uint16_t server_count = 0;
@@ -23,6 +24,7 @@ dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, u
   dns_server->response_thread = (pthread_t*) malloc(sizeof(pthread_t));
   setup_response_thread(dns_server->response_thread, &query_handler, dns_server);
   dns_server->alive = 1;
+  dns_server->coms = create_coms(dns_server->id);
   return dns_server;
 }
 
@@ -56,13 +58,16 @@ uint8_t recieve_request(dns_server_t *dns_server, uint8_t *message, uint8_t mess
   message_t dns_query;
   bool error = false;
   if (parse_message(message, &dns_query, message_bytes)) {
+    printf("oof");
     return 1;
   }
 
   if (dns_query.header.qr == 1) {
+    printf("oof2");
     return 2;
   }
 
+  printf("TRANS\n");
   const char* result_ip = translate_ip(dns_server->coms, dns_query.question.domain);
   printf("DNS RECIEVED=%d\n", dns_query.header.id);
 
