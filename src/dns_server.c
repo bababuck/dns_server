@@ -11,7 +11,7 @@ dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, u
   dns_server_t *dns_server = (dns_server_t*) malloc(sizeof(dns_server_t));
   dns_server->socket = setup_server(recieving_port, SOCK_DGRAM);
   dns_server->scoreboard_port = scoreboard_port;
-  dns_server->scoreboard_ip = strdup(scoreboard_ip);
+  dns_server->scoreboard_ip = scoreboard_ip;
   dns_server->router_port = ROUTER_PORT_NUM;
   dns_server->router_ip = get_ip();
   dns_server->id = server_count;

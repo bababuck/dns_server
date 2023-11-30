@@ -23,7 +23,7 @@ typedef struct {
   void *lock;
   char *testname;
   int socket;
-  sockaddr_in_t *destaddr;
+  //  sockaddr_in_t *destaddr;
   pthread_t *dns_response_thread;
 } scoreboard_t;
 

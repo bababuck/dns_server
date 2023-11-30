@@ -79,9 +79,7 @@ char* get_ip() {
   void * tmpAddrPtr=NULL;
 
   getifaddrs(&ifAddrStruct);
-  char *ip = NULL;
   for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-    free(ip);
     if (!ifa->ifa_addr) {
       continue;
     }
@@ -89,10 +87,14 @@ char* get_ip() {
       tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
       char addressBuffer[INET_ADDRSTRLEN];
       inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-      printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
-      ip = strdup(addressBuffer);
+      if (strcmp(ifa->ifa_name, "en0") == 0) {
+	printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+	char *ip = strdup(addressBuffer);
+	freeifaddrs(ifAddrStruct);
+	return ip;
+      }
     }
   }
   if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
-  return ip;
+  return NULL;
 }

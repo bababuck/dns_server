@@ -15,25 +15,22 @@ router_t* create_router(router_mode_t mode, rrl_t *rrl) {
   r->curr_server = 0;
   r->socket = setup_server(ROUTER_PORT_NUM, SOCK_DGRAM);
   r->resp_thread = malloc(sizeof(pthread_t));
-  setup_response_thread(r->resp_thread, &check_servers, (void*) r);
+  //  setup_response_thread(r->resp_thread, &check_servers, (void*) r);
   return r;
 }
 
 uint8_t destroy_router(router_t *router) {
-  for (int i = 0; i < router->server_cnt; ++i) {
-    destroy_dns_server(router->servers[i]);
-  }
   free(router->servers);
   free(router);
   return 0;
 }
 
 uint8_t add_dns_server(router_t *router, dns_server_t *dns) {
-  kill_response_thread(router->resp_thread);
+  //  kill_response_thread(router->resp_thread);
   ++(router->server_cnt);
   router->servers = realloc(router->servers, router->server_cnt);
   router->servers[router->server_cnt - 1] = dns;
-  setup_response_thread(router->resp_thread, &check_servers, (void*) router);
+  //  setup_response_thread(router->resp_thread, &check_servers, (void*) router);
   return 0;
 }
 
