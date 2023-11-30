@@ -29,6 +29,7 @@ typedef struct {
   uint16_t id;
   uint16_t port_num;
   char *ip;
+  pthread_t *response_thread;
 } dns_server_t;
 
 /**
@@ -65,4 +66,4 @@ uint8_t destroy_dns_server(dns_server_t *dns);
  *
  * @returns Error code, 0 if successful
  */
-uint8_t recieve_request(dns_server_t *dns, uint8_t *message, uint8_t message_bytes, sockaddr_in_t *src_info);
+uint8_t recieve_request(dns_server_t *dns, uint8_t *message, uint8_t message_bytes);

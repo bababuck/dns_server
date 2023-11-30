@@ -23,6 +23,7 @@ void init_scoreboard() {
 }
 
 uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id) {
+  printf("SCOREBOARD GENERATED=%d\n", id);
   const std::chrono::time_point<std::chrono::steady_clock>  curr_time = std::chrono::steady_clock::now();
   std::chrono::duration<double> elapsed_seconds = curr_time - start_time;
 
@@ -47,6 +48,7 @@ void* dns_response_handler(void *_scoreboard) {
       perror("Parsing message failed.");
       exit(1);
     }
+    printf("SCOREBOARD RECIEVED=%d\n", dns_message.header.id);
     recieve_dns_answer(scoreboard, dns_message.header.id);
   }
   return NULL;
@@ -74,7 +76,7 @@ scoreboard_t* create_scoreboard(char *testname, uint16_t dns_port) {
   s->socket = setup_server(dns_port, SOCK_DGRAM);
 
   // Starting response thread must be done last
-  //  setup_response_thread(s->dns_response_thread, &dns_response_handler, s);
+  setup_response_thread(s->dns_response_thread, &dns_response_handler, s);
   return s;
 }
 
@@ -83,7 +85,7 @@ uint8_t destroy_scoreboard(scoreboard_t *s) {
   //  free(s->destaddr);
   delete (std::mutex*) s->lock;
   delete (std::deque<results_t>*) s->queue;
-  //  kill_response_thread(s->dns_response_thread);
+  kill_response_thread(s->dns_response_thread);
   free(s->dns_response_thread);
   return 0;
 }

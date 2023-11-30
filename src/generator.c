@@ -17,7 +17,6 @@ typedef struct {
 generator_t* create_generator(char* testname);
 uint8_t destroy_generator(generator_t *generator);
 uint8_t send_single_test(generator_t *g, uint8_t id);
-uint8_t send_single_test(generator_t *g, uint8_t id);
 uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len);
 
 int main(int argc, char **argv) {
@@ -51,6 +50,7 @@ uint8_t destroy_generator(generator_t *generator) {
   }
   printf("DNS\n");
   free(generator);
+  printf("GEN\n");
   return 0;
 }
 
@@ -59,6 +59,7 @@ uint8_t run_test(char *testname) {
   printf("CREATED\n");
   send_single_test(generator, 0);
   printf("TEST SENT\n");
+  sleep(5);
   destroy_generator(generator);
   return 0;
 }

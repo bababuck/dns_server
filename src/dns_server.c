@@ -7,6 +7,8 @@
 
 static uint16_t server_count = 0;
 
+void* query_handler(void *_dns_server);
+
 dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, uint16_t recieving_port) {
   dns_server_t *dns_server = (dns_server_t*) malloc(sizeof(dns_server_t));
   dns_server->socket = setup_server(recieving_port, SOCK_DGRAM);
@@ -18,6 +20,8 @@ dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, u
   ++server_count;
   dns_server->ip = get_ip();
   dns_server->port_num = recieving_port;
+  dns_server->response_thread = (pthread_t*) malloc(sizeof(pthread_t));
+  setup_response_thread(dns_server->response_thread, &query_handler, dns_server);
   return dns_server;
 }
 
@@ -26,11 +30,23 @@ uint8_t destroy_dns_server(dns_server_t *dns_server) {
   free(dns_server->router_ip);
   close(dns_server->socket);
   free(dns_server->ip);
+  free(dns_server->response_thread);
   free(dns_server);
   return 0;
 }
 
-uint8_t recieve_request(dns_server_t *dns_server, uint8_t *message, uint8_t message_bytes, sockaddr_in_t *src_info) {
+void* query_handler(void *_dns_server) {
+  dns_server_t *dns_server = (dns_server_t*) _dns_server;
+  message_t dns_message;
+  uint8_t buffer[MAX_DNS_BYTES];
+  while (true) { // Run until thread killed
+    uint8_t message_len = recieve_message(buffer, MAX_DNS_BYTES, dns_server->socket);
+    recieve_request(dns_server, buffer, message_len);
+  }
+  return NULL;
+}
+
+uint8_t recieve_request(dns_server_t *dns_server, uint8_t *message, uint8_t message_bytes) {
   message_t dns_query;
   bool error = false;
   if (parse_message(message, &dns_query, message_bytes)) {
@@ -42,6 +58,7 @@ uint8_t recieve_request(dns_server_t *dns_server, uint8_t *message, uint8_t mess
   }
 
   const char* result_ip = translate_ip(dns_server->coms, dns_query.question.domain);
+  printf("DNS RECIEVED=%d\n", dns_query.header.id);
 
   if (dns_query.header.id == 1 << 15) {
     uint8_t buffer[MAX_DNS_BYTES];
