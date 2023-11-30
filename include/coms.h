@@ -10,6 +10,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #include "server.h"
@@ -90,3 +94,7 @@ uint8_t handle_update_request(coms_t *coms, uint8_t id);
  * @returns IP address as c-string, NULL if not found
  */
 const char* translate_ip(coms_t *coms, char* domain);
+
+#ifdef __cplusplus
+}
+#endif

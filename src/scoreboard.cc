@@ -3,8 +3,11 @@
 #include <mutex>
 #include <deque>
 
+extern "C" {
+
 #include "../include/dns.h"
 #include "../include/scoreboard.h"
+
 
 typedef struct {
   double time;
@@ -83,4 +86,6 @@ uint8_t destroy_scoreboard(scoreboard_t *s) {
   delete (std::deque<results_t>*) s->queue;
   kill_response_thread(s->dns_response_thread);
   return 0;
+}
+
 }

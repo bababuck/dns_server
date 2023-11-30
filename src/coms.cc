@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <unistd.h>
 
+extern "C" {
+
 typedef std::unordered_map<std::string, std::string> hash_t;
 
 typedef struct {
@@ -51,4 +53,6 @@ const char* translate_ip(coms_t *coms, char* domain) {
     return ((*ip_hash)[domain]).c_str();
   }
   return NULL;
+}
+
 }

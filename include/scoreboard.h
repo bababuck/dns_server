@@ -11,6 +11,10 @@
 
 #include "server.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Contains all information needed by the scoreboard.
  */
@@ -33,7 +37,7 @@ typedef struct {
  *
  * @returns Error code, 0 if successful
  */
-uint8_t recieve_generated_req(scoreboard_t *scoreboard, uint8_t id);
+uint8_t recieve_generated_req(scoreboard_t *scoreboard, uint16_t id);
 
 /**
  * Create a new scoreboard to be used for testing.
@@ -57,3 +61,7 @@ scoreboard_t* create_scoreboard(char *testname, uint16_t dns_port);
  * @returns Error code, 0 if successful
  */
 uint8_t destroy_scoreboard(scoreboard_t *scoreboard);
+
+#ifdef __cplusplus
+}
+#endif
