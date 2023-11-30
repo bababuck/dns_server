@@ -4,17 +4,24 @@
 #include "../include/dns_server.h"
 #include "../include/dns.h"
 
+static uint8_t server_count = 0;
+
 dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, uint16_t recieving_port) {
   dns_server_t *dns_server = (dns_server_t*) malloc(sizeof(dns_server_t));
   dns_server->socket = setup_server(recieving_port, SOCK_DGRAM);
   dns_server->scoreboard_port = scoreboard_port;
   dns_server->scoreboard_ip = strdup(scoreboard_ip);
+  dns_server->id = server_count;
+  ++server_count;
+  dns_server->ip = get_ip();
+  dns_server->port_num = recieving_port;
   return dns_server;
 }
 
 uint8_t destroy_dns_server(dns_server_t *dns_server) {
   free(dns_server->scoreboard_ip);
   close(dns_server->socket);
+  free(dns_server->ip);
   free(dns_server);
   return 0;
 }

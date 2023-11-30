@@ -35,6 +35,8 @@ typedef struct {
   uint8_t server_cnt;
   uint8_t curr_server;
   int socket;
+  uint16_t query_counter;
+  pthread_t *resp_thread;
 } router_t;
 
 /**
@@ -70,19 +72,14 @@ uint8_t add_dns_server(router_t *router, dns_server_t *dns);
 /**
  * Send a test to each DNS server to get it's response time
  *
- * Used both internally to know when a server is down, and externally
- * to gather statistics.
- *
- * Conducted by sending a fake query (recognized as fake by the DNS), which
- * the DNS will recognize, do a random lookup, and then ping the router on
- * completion.
+ * If doesn't return within allowed time, then remove
  *
  * @param router: the router to request from.
- * @param dns_id: which server number to query
+ * @param allowed_seconds: time given to prove life
  *
- * @returns time of completion in milliseconds, maximum of 6000 ms, -1 on error
+ * @returns error code, 0 if successful
  */
-uint64_t query_response_time(router_t *router, uint8_t dns_id);
+uint8_t query_response_time(router_t *router, uint8_t allowed_seconds);
 
 /**
  * Forward a DNS request to a pseudo-random (accounts for routing mode) DNS server.

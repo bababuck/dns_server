@@ -72,7 +72,6 @@ scoreboard_t* create_scoreboard(char *testname, uint16_t dns_port) {
   s->queue = (void*) new std::deque<results_t>();
   s->dns_response_thread = (pthread_t*) malloc(sizeof(pthread_t));
   s->socket = setup_server(dns_port, SOCK_DGRAM);
-  get_ip();
 
   // Starting response thread must be done last
   setup_response_thread(s->dns_response_thread, &dns_response_handler, s);

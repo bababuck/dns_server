@@ -24,6 +24,9 @@ typedef struct {
   int socket;
   char *scoreboard_ip;
   uint16_t scoreboard_port;
+  uint8_t id;
+  uint16_t port_num;
+  char *ip;
 } dns_server_t;
 
 /**
