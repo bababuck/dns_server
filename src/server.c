@@ -36,6 +36,7 @@ int setup_server(uint16_t port_num, int protocol) {
 }
 
 uint8_t send_packet(uint16_t port_num, char *ip, int socket_info, uint8_t *message, uint8_t message_len) {
+  printf("SEND=%d", message_len);
   sockaddr_in_t dest_server;
   dest_server.sin_family  = AF_INET;  // Internet Domain
   dest_server.sin_port = htons(port_num); // Server Port
@@ -58,7 +59,7 @@ uint8_t setup_response_thread(pthread_t *thread, void *(receive_routine)(void*),
 
 uint8_t kill_response_thread(pthread_t *thread) {
   if (pthread_kill(*thread, 0) != 0) {
-    perror("pthread_kil");
+    perror("pthread_kill");
     exit(7);
   }
   return 0;
@@ -66,10 +67,13 @@ uint8_t kill_response_thread(pthread_t *thread) {
 
 uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info) {
   uint8_t bytes_recieved;
-  if((bytes_recieved = recvfrom(socket_info, buffer, length, 0, NULL, NULL)) < 0) {
+  sockaddr_in_t client;
+  int len = sizeof(client);
+  if((bytes_recieved = recvfrom(socket_info, buffer, length, 0, (sockaddr_t *)&client, (socklen_t *)&len)) < 0) {
     perror("recvfrom");
     exit(5);
   }
+  printf("HELP=%d %s\n", ntohs(client.sin_port), inet_ntoa(client.sin_addr));
   return bytes_recieved;
 }
 

@@ -12,7 +12,7 @@
 
 #pragma once
 
-#define ROUTER_PORT_NUM 1055
+#define ROUTER_PORT_NUM 2055
 
 #include <stdint.h>
 

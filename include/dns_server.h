@@ -30,6 +30,7 @@ typedef struct {
   uint16_t port_num;
   char *ip;
   pthread_t *response_thread;
+  uint8_t alive;
 } dns_server_t;
 
 /**

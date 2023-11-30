@@ -38,7 +38,7 @@ uint8_t add_dns_server(router_t *router, dns_server_t *dns) {
 void* check_servers(void *router) {
   router_t *r = (router_t*) router;
   while (true) {
-    query_response_time(router, 60);
+    //    query_response_time(router, 60);
   }
   return NULL;
 }

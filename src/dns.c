@@ -8,6 +8,7 @@
 
 uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, const char *ip) {
   uint8_t *curr = buffer;
+  uint8_t bytes = 0;
 
   // Header
   header_t h = {
@@ -26,10 +27,12 @@ uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, co
   memcpy(buffer, &h, sizeof(header_t));
   //  printf("%x %x %x %x %x %x\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
   curr += sizeof(header_t);
+  bytes += sizeof(header_t);
 
   // Question
   memcpy(curr, domain, sizeof(char) * (strlen(domain) + 1));
   curr += sizeof(domain);
+  bytes += sizeof(domain);
   curr[1] = 1;
   curr[3] = 1;
   //  printf("%s\n", curr);
@@ -44,7 +47,7 @@ uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, co
   uint8_t rdlength;
   uint8_t *rdata;
   */
-  return 0;
+  return bytes;
 }
 
 void flip_header_endian(header_t *h) {

@@ -59,7 +59,7 @@ uint8_t run_test(char *testname) {
   printf("CREATED\n");
   send_single_test(generator, 0);
   printf("TEST SENT\n");
-  sleep(5);
+  sleep(2);
   destroy_generator(generator);
   return 0;
 }
