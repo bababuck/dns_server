@@ -26,6 +26,7 @@ dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, u
 }
 
 uint8_t destroy_dns_server(dns_server_t *dns_server) {
+  kill_response_thread(dns_server->response_thread);
   free(dns_server->scoreboard_ip);
   free(dns_server->router_ip);
   close(dns_server->socket);
@@ -40,6 +41,7 @@ void* query_handler(void *_dns_server) {
   message_t dns_message;
   uint8_t buffer[MAX_DNS_BYTES];
   while (true) { // Run until thread killed
+    printf("HEREREE");
     uint8_t message_len = recieve_message(buffer, MAX_DNS_BYTES, dns_server->socket);
     recieve_request(dns_server, buffer, message_len);
   }

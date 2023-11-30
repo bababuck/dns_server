@@ -81,11 +81,11 @@ scoreboard_t* create_scoreboard(char *testname, uint16_t dns_port) {
 }
 
 uint8_t destroy_scoreboard(scoreboard_t *s) {
+  kill_response_thread(s->dns_response_thread);
   free(s->testname);
   //  free(s->destaddr);
   delete (std::mutex*) s->lock;
   delete (std::deque<results_t>*) s->queue;
-  kill_response_thread(s->dns_response_thread);
   free(s->dns_response_thread);
   return 0;
 }
