@@ -1,8 +1,6 @@
 #include "../include/router.h"
 #include "../include/server.h"
 
-#define ROUTER_PORT_NUM 1055
-
 /**
  * Function to continually check if servers are active.
  */

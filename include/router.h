@@ -12,6 +12,8 @@
 
 #pragma once
 
+#define ROUTER_PORT_NUM 1055
+
 #include <stdint.h>
 
 #include "rrl.h"
