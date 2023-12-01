@@ -19,7 +19,7 @@ typedef struct {
 generator_t* create_generator(arguments_t *arguments);
 uint8_t destroy_generator(generator_t *generator);
 uint8_t send_single_test(generator_t *g, uint8_t id);
-uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len);
+uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len, uint16_t id);
 
 int main(int argc, char **argv) {
   arguments_t arguments;
@@ -70,14 +70,15 @@ uint8_t run_test(arguments_t *arguments) {
 }
 
 uint8_t send_single_test(generator_t *g, uint8_t id) {
-  recieve_generated_req(g->scoreboard, id);
   uint8_t buffer[MAX_DNS_BYTES];
   char domain[] = "google";
   uint8_t message_len = craft_message(buffer, /*query=*/true, id, /*domain=*/domain, /*ip=*/NULL);
-  send_to_router(g, buffer, message_len);
+  send_to_router(g, buffer, message_len, id);
   return 0;
 }
 
-uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len) {
-  return forward_request(generator->router, message, message_len);
+uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len, uint16_t id) {
+  uint8_t dns_id = forward_request(generator->router, message, message_len);
+  recieve_generated_req(generator->scoreboard, id, dns_id);
+  return 0;
 }

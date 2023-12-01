@@ -105,9 +105,9 @@ uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len)
     }
   }
   printf("Forwarded to server %d\n", router->servers[chosen_server]->id);
-  uint8_t error = send_packet(/*port_num=*/router->servers[chosen_server]->port_num, /*ip=*/router->servers[chosen_server]->ip, /*socket_info=*/router->socket, message, message_len);
+  send_packet(/*port_num=*/router->servers[chosen_server]->port_num, /*ip=*/router->servers[chosen_server]->ip, /*socket_info=*/router->socket, message, message_len);
   pthread_mutex_unlock(router->mutex);
-  return error;
+  return router->servers[chosen_server]->id;
 }
 
 uint8_t remove_server(router_t *router, uint8_t dns_id) {

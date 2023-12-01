@@ -34,10 +34,11 @@ typedef struct {
  *
  * @param scoreboard: scoreboard to check against
  * @param id: ID of the request
+ * @param dns_id: ID of DNS server used
  *
  * @returns Error code, 0 if successful
  */
-uint8_t recieve_generated_req(scoreboard_t *scoreboard, uint16_t id);
+  uint8_t recieve_generated_req(scoreboard_t *scoreboard, uint16_t id, uint8_t dns_id);
 
 /**
  * Create a new scoreboard to be used for testing.

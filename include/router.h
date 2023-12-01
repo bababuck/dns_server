@@ -96,7 +96,7 @@ uint8_t query_response_time(router_t *router, uint8_t allowed_seconds);
  * @params message: dns request to forward
  * @params message_len: length of message
  *
- * @returns error code, 0 if successful
+ * @returns ID of DNS router forwared to
  */
 uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len);
 
