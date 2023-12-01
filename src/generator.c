@@ -71,6 +71,7 @@ static uint8_t domain_cnt;
 int main(int argc, char **argv) {
   arguments_t arguments;
   srand(time(NULL));
+  domain_cnt = get_domains("hosts.txt", &domains);
   parse_cli(argc, argv, &arguments);
   return run_test(&arguments);
 }
@@ -88,7 +89,6 @@ generator_t* create_generator(arguments_t *arguments) {
   }
   free(ip);
   g->arguments = arguments;
-  domain_cnt = get_domains("hosts.txt", &domains);
   return g;
 }
 
