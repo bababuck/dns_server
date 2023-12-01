@@ -30,9 +30,8 @@ double get_time_elapsed() {
   return elapsed_time.count();
 }
 
-uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id, uint8_t dns_id, uint8_t rrl_removed) {
+uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id, uint8_t dns_id, uint8_t rrl_removed, double elapsed_time) {
   printf("Scoreboard recieved generated test #%d\n", id);
-  double elapsed_time = get_time_elapsed();
 
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
   ((std::deque<results_t>*) (s->queue))->push_back({elapsed_time, id, dns_id, rrl_removed});

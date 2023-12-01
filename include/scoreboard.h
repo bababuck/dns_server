@@ -36,10 +36,11 @@ typedef struct {
  * @param id: ID of the request
  * @param dns_id: ID of DNS server used
  * @param rrl_removed: Was request removed by RRL
+ * @param request_time: Time the request was sent to the router
  *
  * @returns Error code, 0 if successful
  */
-  uint8_t recieve_generated_req(scoreboard_t *scoreboard, uint16_t id, uint8_t dns_id, uint8_t rrl_removed);
+  uint8_t recieve_generated_req(scoreboard_t *scoreboard, uint16_t id, uint8_t dns_id, uint8_t rrl_removed, double request_time);
 
 /**
  * Create a new scoreboard to be used for testing.
