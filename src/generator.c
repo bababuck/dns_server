@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "../include/generator.h"
 #include "../include/cli_parser.h"
 #include "../include/router.h"
@@ -68,6 +70,7 @@ static uint8_t domain_cnt;
 
 int main(int argc, char **argv) {
   arguments_t arguments;
+  srand(time(NULL));
   parse_cli(argc, argv, &arguments);
   return run_test(&arguments);
 }
@@ -118,7 +121,7 @@ uint8_t run_test(arguments_t *arguments) {
 
 uint8_t send_single_test(generator_t *g, uint16_t id) {
   uint8_t buffer[MAX_DNS_BYTES];
-  char domain[] = "google";
+  char *domain = domains[((uint8_t) rand()) % domain_cnt];
   uint8_t message_len = craft_message(buffer, /*query=*/true, id, /*domain=*/domain, /*ip=*/NULL);
   send_to_router(g, buffer, message_len, id);
   return 0;
