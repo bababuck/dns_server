@@ -2,6 +2,7 @@
 #include <chrono>
 #include <mutex>
 #include <deque>
+#include <stdio.h>
 
 extern "C" {
 
@@ -21,6 +22,16 @@ typedef struct {
 std::chrono::time_point<std::chrono::steady_clock> start_time;
 
 uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id);
+
+/**
+ * Write an transaction result to an open file.
+ *
+ * @param file: file descriptor to write to.
+ * @param results: Results to write out.
+ *
+ * @returns Error code, 0 if successful
+ */
+uint8_t write_results(FILE *file, results_t *results);
 
 void init_scoreboard() {
   start_time = std::chrono::steady_clock::now();
@@ -96,6 +107,18 @@ uint8_t destroy_scoreboard(scoreboard_t *s) {
   delete (std::deque<results_t>*) s->queue;
   free(s->dns_response_thread);
   return 0;
+}
+
+uint8_t write_results(FILE *file, results_t *results) {
+  return (uint8_t) 0 <
+    fprintf(file,
+            "%.6f,%d,%d,%d,%d,%.6f\n",
+            results->start_time,
+            results->id,
+            results->dns_id,
+            results->rrl_removed,
+            results->recieved,
+            results->finish_time);
 }
 
 }
