@@ -128,7 +128,8 @@ uint8_t send_single_test(generator_t *g, uint16_t id) {
 }
 
 uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len, uint16_t id) {
-  uint8_t dns_id = forward_request(generator->router, message, message_len);
+  uint8_t dns_id;
+  forward_request(generator->router, message, message_len, &dns_id);
   recieve_generated_req(generator->scoreboard, id, dns_id);
   return 0;
 }

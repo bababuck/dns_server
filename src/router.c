@@ -89,7 +89,7 @@ uint8_t query_response_time(router_t *router, uint8_t allowed_seconds) {
   return 0;
 }
 
-uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len) {
+uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len, uint8_t *dns_id) {
   pthread_mutex_lock(router->mutex);
   uint8_t chosen_server;
   if (router->mode == ROUND_ROBIN) {
@@ -105,9 +105,10 @@ uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len)
     }
   }
   printf("Forwarded to server %d\n", router->servers[chosen_server]->id);
-  send_packet(/*port_num=*/router->servers[chosen_server]->port_num, /*ip=*/router->servers[chosen_server]->ip, /*socket_info=*/router->socket, message, message_len);
+  *dns_id = router->servers[chosen_server]->id;
+  uint8_t error = send_packet(/*port_num=*/router->servers[chosen_server]->port_num, /*ip=*/router->servers[chosen_server]->ip, /*socket_info=*/router->socket, message, message_len);
   pthread_mutex_unlock(router->mutex);
-  return router->servers[chosen_server]->id;
+  return error;
 }
 
 uint8_t remove_server(router_t *router, uint8_t dns_id) {
