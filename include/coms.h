@@ -39,10 +39,11 @@ typedef struct {
  * Setups needed sockets and threads, creates the needed files.
  *
  * @params id: id of the created module.
+ * @params read_host: Read from host file rather than requesting from other server
  *
  * @returns newly created coms module
  */
-coms_t *create_coms(uint8_t id);
+coms_t *create_coms(uint8_t id, bool read_host);
 
 /**
  * Deallocate a coms module

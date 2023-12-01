@@ -40,10 +40,11 @@ typedef struct {
  * @params scoreboard_ip: IP address of the scoreboard
  * @params scoreboard_port: Port to send data to scoreboard
  * @params recieving_port: Port to recieve requests from router
+ * @params read_host: Read from host file rather than requesting from other server
  *
  * @returns newly created DNS server
  */
-dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, uint16_t recieving_port);
+dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, uint16_t recieving_port, bool read_host);
 
 /**
  * Deallocate a new DNS server.

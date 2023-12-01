@@ -35,7 +35,7 @@ generator_t* create_generator(arguments_t *arguments) {
   g->dns_servers = malloc(g->dns_server_cnt * sizeof(dns_server_t*));
   char *ip = get_ip();
   for (int i = 0; i < arguments->starting_server_cnt; ++i) {
-    g->dns_servers[i] = create_dns_server(strdup(ip), CLIENT_PORT, DNS_PORT_NUM + i);
+    g->dns_servers[i] = create_dns_server(strdup(ip), CLIENT_PORT, DNS_PORT_NUM + i, true);
     add_dns_server(g->router, g->dns_servers[i]);
   }
   free(ip);

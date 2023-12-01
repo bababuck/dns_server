@@ -10,7 +10,7 @@ static uint16_t server_count = 0;
 
 void* query_handler(void *_dns_server);
 
-dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, uint16_t recieving_port) {
+dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, uint16_t recieving_port, bool read_host) {
   dns_server_t *dns_server = malloc(sizeof(dns_server_t));
   dns_server->socket = setup_server(recieving_port, SOCK_DGRAM);
   dns_server->scoreboard_port = scoreboard_port;
@@ -23,7 +23,7 @@ dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, u
   dns_server->port_num = recieving_port;
   dns_server->response_thread = malloc(sizeof(pthread_t));
   setup_response_thread(dns_server->response_thread, &query_handler, dns_server);
-  dns_server->coms = create_coms(dns_server->id);
+  dns_server->coms = create_coms(dns_server->id, read_host);
   return dns_server;
 }
 
