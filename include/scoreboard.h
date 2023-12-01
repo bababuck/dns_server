@@ -25,6 +25,7 @@ typedef struct {
   int socket;
   //  sockaddr_in_t *destaddr;
   pthread_t *dns_response_thread;
+  void *results_file;
 } scoreboard_t;
 
 /**
