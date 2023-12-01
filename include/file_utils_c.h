@@ -7,6 +7,12 @@
  * Not all all efficient, but just need something simple for small files.
  */
 
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Parse a hosts.txt file and report back DOMAIN:IP pairs.
  *
@@ -16,3 +22,7 @@
  * @returns Number of domain
  */
 uint8_t get_domains(const char *filename, char ***domains);
+
+#ifdef __cplusplus
+}
+#endif
