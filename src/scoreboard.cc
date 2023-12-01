@@ -69,6 +69,7 @@ uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id) {
       return 0;
     }
   }
+  fprintf(stderr, "DNS answer had no corresponding request!");
   return 1;
 }
 
