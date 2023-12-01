@@ -1,6 +1,8 @@
 #include "../include/file_utils_cpp.h"
 #include "../include/file_utils_c.h"
 
+extern "C" {
+
 std::vector<std::pair<std::string, std::string>> parse_hosts_file(const char *filename) {
   std::ifstream infile("hosts.txt");
   std::string line;
@@ -24,4 +26,6 @@ uint8_t get_domains(const char *filename, char ***domains) {
     (*domains)[i] = strdup(translations[i].first.c_str());
   }
   return (uint8_t) translations.size();
+}
+
 }

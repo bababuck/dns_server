@@ -3,6 +3,8 @@
  *
  * A little hacky, but I want to have just one .c file, so I created 2 separate
  * headers to include depending if c or cpp interface.
+ *
+ * Not all all efficient, but just need something simple for small files.
  */
 
 #include <fstream>
