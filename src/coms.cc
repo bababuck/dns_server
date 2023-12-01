@@ -1,10 +1,10 @@
-#include <fstream>
+#include <vector>
 #include <string>
-#include <sstream>
 #include <unordered_map>
 #include <unistd.h>
 
 #include "../include/coms.h"
+#include "../include/file_utils_cpp.h"
 
 extern "C" {
 
@@ -18,16 +18,10 @@ coms_t *create_coms(uint8_t id, bool read_hosts) {
   c->id = id;
   c->ip_hash = (void*) new hash_t();
   if (read_hosts) {
-    std::ifstream infile("hosts.txt");
-    std::string line;
-    while (std::getline(infile, line)) {
-      std::istringstream iss(line);
-      std::string domain, ip;
-      if (!(iss >> domain >> ip)) {
-        fprintf(stderr, "Invalid host file");
-        free(c);
-        return NULL;
-      }
+    std::vector<std::pair<std::string, std::string>> translations =  parse_hosts_file("hosts.txt");
+    for (auto trans : translations) {
+      std::string domain = trans.first;
+      std::string ip = trans.second;
       (*((hash_t*) c->ip_hash))[domain] = ip;
     }
   } else {
