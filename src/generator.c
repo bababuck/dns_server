@@ -1,12 +1,11 @@
 #include "../include/generator.h"
+#include "../include/cli_parser.h"
 #include "../include/router.h"
 #include "../include/scoreboard.h"
 #include "../include/generator.h"
 #include "../include/dns_server.h"
 #include "../include/dns.h"
 #include "../include/server.h"
-
-#include "cli_parser.c"
 
 #define CLIENT_PORT 1050
 

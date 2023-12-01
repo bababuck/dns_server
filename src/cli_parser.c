@@ -1,94 +1,80 @@
-/**
- * Provide basic functionality for command line options.
- *
- * Gets needed information for generating a test-run
- *
- *
- *
- * https://www.gnu.org/software/libc/manual/html_node/Argp-Example-3.html
- */
-
+#include <ctype.h>
 #include <stdlib.h>
-#include <argp.h>
+#include <stdio.h>
+#include <unistd.h>
 
-const char *argp_program_version =
-  "argp-ex3 1.0";
-const char *argp_program_bug_address =
-  "<bug-gnu-utils@gnu.org>";
-
-/* Program documentation. */
-static char doc[] =
-  "Distributed DNS - Test and performance generator for a distributed DNS system";
-
-/* A description of the arguments we accept. */
-static char args_doc[] = "dns-count";
-
-/* The options we understand. */
-static struct argp_option options[] = {
-  {"testname",  't', "NAME",     0,                    "What is the name of this test" },
-  {"save",      's', 0,          OPTION_ARG_OPTIONAL,  "Should this test be saved" }
-  { 0 }
-};
-
-/* Used by main to communicate with parse_opt. */
-typedef struct
-{
-  char *args[2];
-  char *test_name;
-  int save;
-} arguments_t;
-
-/* Parse a single option. */
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
-{
-  /* Get the input argument from argp_parse, which we
-     know is a pointer to our arguments structure. */
-  arguments_t *arguments = state->input;
-
-  switch (key)
-    {
-    case 's':
-      arguments->save = 1;
-      break;
-    case 't':
-      arguments->test_name = arg;
-      break;
-
-    case ARGP_KEY_ARG:
-      if (state->arg_num >= 2)
-        /* Too many arguments. */
-        argp_usage(state);
-
-      arguments->args[state->arg_num] = arg;
-      break;
-
-    case ARGP_KEY_END:
-      if (state->arg_num < 2)
-        /* Not enough arguments. */
-        argp_usage (state);
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-/* Our argp parser. */
-static struct argp argp = { options, parse_opt, args_doc, doc };
+#include "../include/cli_parser.h"
+#include "../include/router.h"
 
 int parse_cli(int argc, char **argv, arguments_t *arguments) {
-  /* Default values. */
-  arguments->save = 0;
+  opterr = 0;
+  arguments->save = false;
+  arguments->test_name = "";
+  arguments->starting_server_cnt = 1;
+  arguments->randomly_disable = false;
+  arguments->add_midway = false;
+  arguments->router_mode = ROUND_ROBIN;
+  arguments->make_translation_changes = false;
+  int c;
 
-  /* Parse our arguments; every option seen by parse_opt will
-     be reflected in arguments. */
-  argp_parse(&argp, argc, argv, 0, 0, arguments);
+  while ((c = getopt(argc, argv, "xstar:d:c:")) != -1) {
+    switch (c) {
+    case 's':
+      arguments->save = true;
+      break;
+    case 'd':
+      arguments->randomly_disable = true;
+      break;
+    case 'x':
+      arguments->make_translation_changes = true;
+      break;
+    case 'r':
+      if (strcmp(optarg, "ROUND_ROBIN")) {
+        arguments->router_mode = ROUND_ROBIN;
+      } else if (strcmp(optarg, "OVERLOAD")) {
+        arguments->router_mode = OVERLOAD;
+      } else {
+        fprintf(stderr, "Router mode must be ROUND_ROBIN or OVERLOAD.\n");
+        abort();
+      }
+      break;
+    case 't':
+      arguments->test_name = optarg;
+      break;
+    case 'c':
+      arguments->starting_server_cnt = atoi(optarg);
+      if (arguments->starting_server_cnt < 0 || arguments->starting_server_cnt > 5) {
+        fprintf(stderr, "Server count must be between 1 and 4 inclusive.\n");
+        abort();
+      }
+      break;
+    case '?':
+      if (optopt == 't') {
+        fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+      } else if (isprint (optopt)) {
+        fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+      } else {
+        fprintf(stderr,
+                "Unknown option character `\\x%x'.\n",
+                optopt);
+      }
+      return 1;
+    default:
+      abort ();
+    }
+  }
 
-  printf ("save = %s\ntest_name = %s\n",
+  printf ("Running with parameters: save = %s, test-name = %s, starting-server-cnt = %d, randomly-disable-server = %s, add-server-midway = %s, router-mode = %s, make-translation-changes = %s\n",
           arguments->save ? "yes" : "no",
-          arguments->test_name);
+          arguments->test_name,
+          arguments->starting_server_cnt,
+          arguments->randomly_disable ? "yes" : "no",
+          arguments->add_midway ? "yes" : "no",
+          arguments->router_mode == ROUND_ROBIN ? "ROUND_ROBIN" : "OVERLOAD",
+          arguments->make_translation_changes ? "yes" : "no");
 
+  for (int index = optind; index < argc; index++) {
+    printf ("Non-option argument %s\n", argv[index]);
+  }
   return 0;
 }
