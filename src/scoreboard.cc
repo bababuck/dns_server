@@ -24,13 +24,18 @@ void init_scoreboard() {
   start_time = std::chrono::steady_clock::now();
 }
 
+double get_time_elapsed() {
+  const std::chrono::time_point<std::chrono::steady_clock>  curr_time = std::chrono::steady_clock::now();
+  std::chrono::duration<double> elapsed_time = curr_time - start_time;
+  return elapsed_time.count();
+}
+
 uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id, uint8_t dns_id, uint8_t rrl_removed) {
   printf("Scoreboard recieved generated test #%d\n", id);
-  const std::chrono::time_point<std::chrono::steady_clock>  curr_time = std::chrono::steady_clock::now();
-  std::chrono::duration<double> elapsed_seconds = curr_time - start_time;
+  double elapsed_time = get_time_elapsed();
 
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
-  ((std::deque<results_t>*) (s->queue))->push_back({elapsed_seconds.count(), id, dns_id, rrl_removed});
+  ((std::deque<results_t>*) (s->queue))->push_back({elapsed_time, id, dns_id, rrl_removed});
   return 0;
 }
 
@@ -57,12 +62,11 @@ void* dns_response_handler(void *_scoreboard) {
 }
 
 uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id) {
-  const std::chrono::time_point<std::chrono::steady_clock>  curr_time = std::chrono::steady_clock::now();
-  std::chrono::duration<double> elapsed_seconds = curr_time - start_time;
+  double elapsed_time = get_time_elapsed();
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
   for (auto it = ((std::deque<results_t>*) (s->queue))->begin(); it != ((std::deque<results_t>*) (s->queue))->end(); ++it) {
     if (it->id == id) {
-      it->time = elapsed_seconds.count() - it->time;
+      it->time = elapsed_time - it->time;
       return 0;
     }
   }

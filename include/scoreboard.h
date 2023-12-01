@@ -64,6 +64,13 @@ scoreboard_t* create_scoreboard(char *testname, uint16_t dns_port);
  */
 uint8_t destroy_scoreboard(scoreboard_t *scoreboard);
 
+/**
+ * Get the time elapsed since start of simulation.
+ *
+ * @returns time in seconds
+ */
+double get_time_elapsed();
+
 #ifdef __cplusplus
 }
 #endif
