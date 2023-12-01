@@ -14,6 +14,7 @@
 
 #define ROUTER_PORT_NUM 2055
 
+#include <pthread.h>
 #include <stdint.h>
 
 #include "rrl.h"
@@ -39,6 +40,7 @@ typedef struct {
   int socket;
   uint16_t query_counter;
   pthread_t *resp_thread;
+  pthread_mutex_t *mutex;
 } router_t;
 
 /**
