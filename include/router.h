@@ -96,10 +96,11 @@ uint8_t query_response_time(router_t *router, uint8_t allowed_seconds);
  * @params message: dns request to forward
  * @params message_len: length of message
  * @params dns_id: DNS server used
+ * @params rrl_removed: True if removed by RRL
  *
  * @returns Error code, 0 if successful
  */
-uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len, uint8_t *dns_id);
+uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len, uint8_t *dns_id, bool *rrl_removed);
 
 /**
  * Remove a DNS server from the rotation is response time is too slow.

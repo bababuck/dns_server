@@ -89,7 +89,12 @@ uint8_t query_response_time(router_t *router, uint8_t allowed_seconds) {
   return 0;
 }
 
-uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len, uint8_t *dns_id) {
+uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len, uint8_t *dns_id, bool *rrl_removed) {
+  if (router->rrl != NULL) {
+    // Do RRL stuff
+  } else {
+    rrl_removed = false;
+  }
   pthread_mutex_lock(router->mutex);
   uint8_t chosen_server;
   if (router->mode == ROUND_ROBIN) {
