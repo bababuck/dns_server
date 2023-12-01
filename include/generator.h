@@ -8,6 +8,8 @@
 
 #include <stdint.h>
 
+#include "cli_parser.h"
+
 /**
  * Generate a random test of the DNS and log it.
  *
@@ -24,8 +26,8 @@
  *
  * All the results and statistics will be logged
  *
- * @params testname: Name of the test, to be used for log file naming.
+ * @params arguments: Arguments to generate test for
  *
  * @results Exit code, 0 if successful
  */
-uint8_t run_test(char *testname);
+uint8_t run_test(arguments_t *arguments);

@@ -11,7 +11,7 @@ static uint16_t server_count = 0;
 void* query_handler(void *_dns_server);
 
 dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, uint16_t recieving_port) {
-  dns_server_t *dns_server = (dns_server_t*) malloc(sizeof(dns_server_t));
+  dns_server_t *dns_server = malloc(sizeof(dns_server_t));
   dns_server->socket = setup_server(recieving_port, SOCK_DGRAM);
   dns_server->scoreboard_port = scoreboard_port;
   dns_server->scoreboard_ip = scoreboard_ip;
@@ -21,7 +21,7 @@ dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, u
   ++server_count;
   dns_server->ip = get_ip();
   dns_server->port_num = recieving_port;
-  dns_server->response_thread = (pthread_t*) malloc(sizeof(pthread_t));
+  dns_server->response_thread = malloc(sizeof(pthread_t));
   setup_response_thread(dns_server->response_thread, &query_handler, dns_server);
   dns_server->coms = create_coms(dns_server->id);
   return dns_server;
@@ -75,7 +75,6 @@ uint8_t recieve_request(dns_server_t *dns_server, uint8_t *message, uint8_t mess
   } else {
     uint8_t buffer[MAX_DNS_BYTES];
     message_bytes = craft_message(buffer, false, dns_query.header.id, dns_query.question.domain, result_ip);
-
     send_packet(dns_server->scoreboard_port, dns_server->scoreboard_ip, dns_server->socket, buffer, message_bytes);
     return 0;
   }

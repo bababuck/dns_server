@@ -16,7 +16,7 @@ typedef struct {
   uint8_t dns_server_cnt;
 } generator_t;
 
-generator_t* create_generator(char* testname);
+generator_t* create_generator(arguments_t *arguments);
 uint8_t destroy_generator(generator_t *generator);
 uint8_t send_single_test(generator_t *g, uint8_t id);
 uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len);
@@ -24,19 +24,21 @@ uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message
 int main(int argc, char **argv) {
   arguments_t arguments;
   parse_cli(argc, argv, &arguments);
-  return run_test(strdup("my_test"));
+  return run_test(&arguments);
 }
 
-generator_t* create_generator(char* testname) {
+generator_t* create_generator(arguments_t *arguments) {
   generator_t *g = malloc(sizeof(generator_t));
-  g->scoreboard = create_scoreboard(testname, (uint16_t) CLIENT_PORT);
-  g->router = create_router(ROUND_ROBIN, NULL);
-  g->dns_server_cnt = 2;
+  g->scoreboard = create_scoreboard(arguments->test_name, (uint16_t) CLIENT_PORT);
+  g->router = create_router(arguments->router_mode, NULL);
+  g->dns_server_cnt = arguments->starting_server_cnt;
   g->dns_servers = malloc(g->dns_server_cnt * sizeof(dns_server_t*));
-  g->dns_servers[0] = create_dns_server(get_ip(), CLIENT_PORT, DNS_PORT_NUM + 1);
-  g->dns_servers[1] = create_dns_server(get_ip(), CLIENT_PORT, DNS_PORT_NUM);
-  add_dns_server(g->router, g->dns_servers[0]);
-  add_dns_server(g->router, g->dns_servers[1]);
+  char *ip = get_ip();
+  for (int i = 0; i < arguments->starting_server_cnt; ++i) {
+    g->dns_servers[i] = create_dns_server(strdup(ip), CLIENT_PORT, DNS_PORT_NUM + i);
+    add_dns_server(g->router, g->dns_servers[i]);
+  }
+  free(ip);
   return g;
 }
 
@@ -57,12 +59,12 @@ uint8_t destroy_generator(generator_t *generator) {
   return 0;
 }
 
-uint8_t run_test(char *testname) {
-  generator_t *generator = create_generator(testname);
+uint8_t run_test(arguments_t *arguments) {
+  generator_t *generator = create_generator(arguments);
   send_single_test(generator, 0);
   send_single_test(generator, 1);
   send_single_test(generator, 2);
-  sleep(5);
+  sleep(10);
   destroy_generator(generator);
   return 0;
 }
