@@ -6,10 +6,11 @@
 #include "../include/cli_parser.h"
 #include "../include/router.h"
 
+
 int parse_cli(int argc, char **argv, arguments_t *arguments) {
   opterr = 0;
   arguments->save = false;
-  arguments->test_name = "";
+  arguments->test_name = NULL;
   arguments->starting_server_cnt = 1;
   arguments->randomly_disable = false;
   arguments->add_midway = false;
@@ -17,7 +18,7 @@ int parse_cli(int argc, char **argv, arguments_t *arguments) {
   arguments->make_translation_changes = false;
   int c;
 
-  while ((c = getopt(argc, argv, "xstar:d:c:")) != -1) {
+  while ((c = getopt(argc, argv, "xst:ar:d:c:")) != -1) {
     switch (c) {
     case 's':
       arguments->save = true;
@@ -39,7 +40,7 @@ int parse_cli(int argc, char **argv, arguments_t *arguments) {
       }
       break;
     case 't':
-      arguments->test_name = optarg;
+      arguments->test_name = strdup(optarg);
       break;
     case 'c':
       arguments->starting_server_cnt = atoi(optarg);
@@ -62,6 +63,11 @@ int parse_cli(int argc, char **argv, arguments_t *arguments) {
     default:
       abort ();
     }
+  }
+
+  if (arguments->test_name == NULL) {
+    fprintf(stderr, "Testname required.\n");
+    abort();
   }
 
   printf ("Running with parameters: save = %s, test-name = %s, starting-server-cnt = %d, randomly-disable-server = %s, add-server-midway = %s, router-mode = %s, make-translation-changes = %s\n",
