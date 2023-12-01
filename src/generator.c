@@ -6,6 +6,7 @@
 #include "../include/dns_server.h"
 #include "../include/dns.h"
 #include "../include/server.h"
+#include "../include/file_utils_c.h"
 
 #define CLIENT_PORT 1050
 
@@ -62,6 +63,9 @@ uint8_t send_single_test(generator_t *g, uint16_t id);
  */
 uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len, uint16_t id);
 
+static char **domains;
+static uint8_t domain_cnt;
+
 int main(int argc, char **argv) {
   arguments_t arguments;
   parse_cli(argc, argv, &arguments);
@@ -81,6 +85,7 @@ generator_t* create_generator(arguments_t *arguments) {
   }
   free(ip);
   g->arguments = arguments;
+  domain_cnt = get_domains("hosts.txt", &domains);
   return g;
 }
 
