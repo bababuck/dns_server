@@ -51,21 +51,21 @@ void* query_handler(void *_dns_server) {
 
 uint8_t recieve_request(dns_server_t *dns_server, uint8_t *message, uint8_t message_bytes) {
   message_t dns_query;
-  printf("Parsing DNS query\n");
+  //  printf("Parsing DNS query\n");
   if (parse_message(message, &dns_query, message_bytes)) {
-    printf("OOF %d\n",parse_message(message, &dns_query, message_bytes));
+    //  printf("OOF %d\n",parse_message(message, &dns_query, message_bytes));
     return 1;
   }
 
   if (dns_query.header.qr == 1) {
-    printf("OOF\n");
+    //    printf("OOF\n");
     return 2;
   }
 
-  printf("Translating DNS query\n");
+  //  printf("Translating DNS query\n");
   const char* result_ip = translate_ip(dns_server->coms, dns_query.question.domain);
 
-  printf("Responding to DNS query\n");
+  //  printf("Responding to DNS query\n");
   if (dns_query.header.id == 1 << 15) {
     uint8_t buffer[MAX_DNS_BYTES];
     message_bytes = craft_message(buffer, false, dns_server->id, dns_query.question.domain, result_ip);

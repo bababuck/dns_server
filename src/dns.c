@@ -20,6 +20,7 @@ uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, co
     .rd = 1,
     .ra = 0,
     .z = 0,
+    .rcode = !query && ip == NULL ? 0x3 : 0x0,
     .qdcount = 0x100,
     .ancount = 0,
     .nscount = 0,
@@ -75,7 +76,6 @@ uint8_t parse_message(uint8_t *buffer, message_t *message, uint8_t message_bytes
     ++char_cnt;
   }
   if (char_cnt + 4 > (message_bytes - 12)) {
-    printf("CNT %d\n", char_cnt);
     return 3;
   }
 

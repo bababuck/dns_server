@@ -36,7 +36,7 @@ int setup_server(uint16_t port_num, int protocol) {
 }
 
 uint8_t send_packet(uint16_t port_num, char *ip, int socket_info, uint8_t *message, uint8_t message_len) {
-  printf("Sending Packet: Port: %d Ip: %s Socket: %d Bytes: %d\n", port_num, ip, socket_info, message_len);
+  //  printf("Sending Packet: Port: %d Ip: %s Socket: %d Bytes: %d\n", port_num, ip, socket_info, message_len);
   sockaddr_in_t dest_server;
   dest_server.sin_family  = AF_INET;  // Internet Domain
   dest_server.sin_port = htons(port_num); // Server Port
@@ -46,7 +46,7 @@ uint8_t send_packet(uint16_t port_num, char *ip, int socket_info, uint8_t *messa
     perror("sendto()");
     exit(5);
   }
-  printf("Sent from %d\n", socket_info);
+  //  printf("Sent from %d\n", socket_info);
   return 0;
 }
 
@@ -68,7 +68,7 @@ uint8_t kill_response_thread(pthread_t *thread) {
 }
 
 uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info) {
-  printf("Recieving Packet: Socket: %d\n", socket_info);
+  //  printf("Recieving Packet: Socket: %d\n", socket_info);
   uint8_t bytes_recieved;
   sockaddr_in_t client;
   int len = sizeof(client);
@@ -76,7 +76,7 @@ uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info) {
     perror("recvfrom");
     exit(5);
   }
-  printf("Recieved at socket: %d Bytes: %d\n", socket_info, bytes_recieved);
+  //  printf("Recieved at socket: %d Bytes: %d\n", socket_info, bytes_recieved);
   return bytes_recieved;
 }
 
