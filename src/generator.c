@@ -131,6 +131,6 @@ uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message
   uint8_t dns_id;
   bool rrl_removed;
   forward_request(generator->router, message, message_len, &dns_id, &rrl_removed);
-  recieve_generated_req(generator->scoreboard, id, dns_id);
+  recieve_generated_req(generator->scoreboard, id, dns_id, rrl_removed);
   return 0;
 }

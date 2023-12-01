@@ -13,6 +13,7 @@ typedef struct {
   double time;
   uint16_t id;
   uint8_t dns_id;
+  uint8_t rrl_removed;
 } results_t;
 
 std::chrono::time_point<std::chrono::steady_clock> start_time;
@@ -23,13 +24,13 @@ void init_scoreboard() {
   start_time = std::chrono::steady_clock::now();
 }
 
-uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id, uint8_t dns_id) {
+uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id, uint8_t dns_id, uint8_t rrl_removed) {
   printf("Scoreboard recieved generated test #%d\n", id);
   const std::chrono::time_point<std::chrono::steady_clock>  curr_time = std::chrono::steady_clock::now();
   std::chrono::duration<double> elapsed_seconds = curr_time - start_time;
 
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
-  ((std::deque<results_t>*) (s->queue))->push_back({elapsed_seconds.count(), id, dns_id});
+  ((std::deque<results_t>*) (s->queue))->push_back({elapsed_seconds.count(), id, dns_id, rrl_removed});
   return 0;
 }
 
