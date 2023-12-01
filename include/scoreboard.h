@@ -71,6 +71,11 @@ uint8_t destroy_scoreboard(scoreboard_t *scoreboard);
  */
 double get_time_elapsed();
 
+/**
+ * Initialize the scoreboard clock.
+ */
+void init_scoreboard();
+
 #ifdef __cplusplus
 }
 #endif

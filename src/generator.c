@@ -71,6 +71,7 @@ static uint8_t domain_cnt;
 int main(int argc, char **argv) {
   arguments_t arguments;
   srand(time(NULL));
+  void init_scoreboard();
   domain_cnt = get_domains("hosts.txt", &domains);
   parse_cli(argc, argv, &arguments);
   return run_test(&arguments);
