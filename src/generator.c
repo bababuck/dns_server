@@ -9,16 +9,57 @@
 
 #define CLIENT_PORT 1050
 
+/**
+ * A test generator, stores information about the test to be run.
+ */
 typedef struct {
   router_t *router;
   scoreboard_t *scoreboard;
   dns_server_t** dns_servers;
   uint8_t dns_server_cnt;
+  arguments_t *arguments;
 } generator_t;
 
+/**
+ * Create a single generator object.
+ *
+ * @params arguments: Object containing the test parameters
+ *
+ * @returns newly created generator
+ */
 generator_t* create_generator(arguments_t *arguments);
+
+/**
+ * Create a single generator object.
+ *
+ * @params generator: object to destroy
+ *
+ * @returns Error code, 0 if successful
+ */
 uint8_t destroy_generator(generator_t *generator);
-uint8_t send_single_test(generator_t *g, uint8_t id);
+
+/**
+ * Create a DNS message and send to router/scoreboard
+ *
+ * @params g: Generator to send from
+ * @params id: Id to use to track the test
+ *
+ * @returns Error code, 0 if successful
+ */
+uint8_t send_single_test(generator_t *g, uint16_t id);
+
+/**
+ * Send a request to the router.
+ *
+ * Also forwards the reuqest/server used to the scoreboard
+ *
+ * @params generator: Generator object
+ * @params message: message being sent
+ * @params message_len: length of the message
+ * @params id: for forwardng to scoreboard
+ *
+ * @returns Error code, 0 if successful
+ */
 uint8_t send_to_router(generator_t *generator, uint8_t* message, uint8_t message_len, uint16_t id);
 
 int main(int argc, char **argv) {
@@ -39,6 +80,7 @@ generator_t* create_generator(arguments_t *arguments) {
     add_dns_server(g->router, g->dns_servers[i]);
   }
   free(ip);
+  g->arguments = arguments;
   return g;
 }
 
@@ -69,7 +111,7 @@ uint8_t run_test(arguments_t *arguments) {
   return 0;
 }
 
-uint8_t send_single_test(generator_t *g, uint8_t id) {
+uint8_t send_single_test(generator_t *g, uint16_t id) {
   uint8_t buffer[MAX_DNS_BYTES];
   char domain[] = "google";
   uint8_t message_len = craft_message(buffer, /*query=*/true, id, /*domain=*/domain, /*ip=*/NULL);
