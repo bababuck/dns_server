@@ -10,10 +10,11 @@ extern "C" {
 
 
 typedef struct {
-  double time;
+  double start_time;
   uint16_t id;
   uint8_t dns_id;
   uint8_t rrl_removed;
+  double finish_time;
 } results_t;
 
 std::chrono::time_point<std::chrono::steady_clock> start_time;
@@ -34,7 +35,7 @@ uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id, uint8_t dns_id, uint
   printf("Scoreboard recieved generated test #%d\n", id);
 
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
-  ((std::deque<results_t>*) (s->queue))->push_back({.time=elapsed_time, .id=id, .dns_id=dns_id, .rrl_removed=rrl_removed});
+  ((std::deque<results_t>*) (s->queue))->push_back({.start_time=elapsed_time, .id=id, .dns_id=dns_id, .rrl_removed=rrl_removed});
   return 0;
 }
 
@@ -65,7 +66,7 @@ uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id) {
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
   for (auto it = ((std::deque<results_t>*) (s->queue))->begin(); it != ((std::deque<results_t>*) (s->queue))->end(); ++it) {
     if (it->id == id) {
-      it->time = elapsed_time - it->time;
+      it->finish_time = elapsed_time;
       return 0;
     }
   }
