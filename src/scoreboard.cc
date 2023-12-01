@@ -23,7 +23,7 @@ void init_scoreboard() {
 }
 
 uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id) {
-  printf("SCOREBOARD GENERATED=%d\n", id);
+  printf("Scoreboard recieved generated test #%d\n", id);
   const std::chrono::time_point<std::chrono::steady_clock>  curr_time = std::chrono::steady_clock::now();
   std::chrono::duration<double> elapsed_seconds = curr_time - start_time;
 
@@ -48,7 +48,7 @@ void* dns_response_handler(void *_scoreboard) {
       perror("Parsing message failed.");
       exit(1);
     }
-    printf("SCOREBOARD RECIEVED=%d\n", dns_message.header.id);
+    printf("Scoreboard recieved dns response #%d\n", dns_message.header.id);
     recieve_dns_answer(scoreboard, dns_message.header.id);
   }
   return NULL;

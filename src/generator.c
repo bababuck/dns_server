@@ -26,11 +26,8 @@ int main(int argc, char **argv) {
 generator_t* create_generator(char* testname) {
   generator_t *g = malloc(sizeof(generator_t));
   g->scoreboard = create_scoreboard(testname, (uint16_t) CLIENT_PORT);
-  printf("SCOREBOARD\n");
   g->router = create_router(ROUND_ROBIN, NULL);
-  printf("ROUTER\n");
   g->dns_server = create_dns_server(get_ip(), CLIENT_PORT, DNS_PORT_NUM);
-  printf("DNS\n");
   add_dns_server(g->router, g->dns_server);
   return g;
 }
@@ -40,26 +37,23 @@ uint8_t destroy_generator(generator_t *generator) {
   if ((rtn_code = destroy_scoreboard(generator->scoreboard))) {
     return rtn_code;
   }
-  printf("SCOREBOARD\n");
   if ((rtn_code = destroy_router(generator->router))) {
     return rtn_code;
   }
-  printf("ROUTER\n");
   if ((rtn_code = destroy_dns_server(generator->dns_server))) {
     return rtn_code;
   }
-  printf("DNS\n");
   free(generator);
-  printf("GEN\n");
   return 0;
 }
 
 uint8_t run_test(char *testname) {
+  printf("Creating generator\n");
   generator_t *generator = create_generator(testname);
-  printf("CREATED\n");
+  printf("Sending test\n");
   send_single_test(generator, 0);
-  printf("TEST SENT\n");
-  sleep(2);
+  sleep(5);
+  printf("Destroying generator\n");
   destroy_generator(generator);
   return 0;
 }

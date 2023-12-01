@@ -42,9 +42,7 @@ uint8_t handle_update_request(coms_t *coms, uint8_t id) {
 }
 
 const char* translate_ip(coms_t *coms, char* domain) {
-  printf("DOMANIN %s\n", domain);
   hash_t *ip_hash  = (hash_t *) coms->ip_hash;
-  printf("HASH\n");
   if (ip_hash->count(domain) != 0) {
     return ((*ip_hash)[domain]).c_str();
   }

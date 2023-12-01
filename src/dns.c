@@ -31,12 +31,13 @@ uint8_t craft_message(uint8_t *buffer, bool query, uint16_t id, char *domain, co
 
   // Question
   memcpy(curr, domain, sizeof(char) * (strlen(domain) + 1));
-  curr += sizeof(domain);
-  bytes += sizeof(domain);
+  curr += strlen(domain) + 1;
+  bytes += strlen(domain) + 1;
   curr[1] = 1;
   curr[3] = 1;
   //  printf("%s\n", curr);
   curr += 4;
+  bytes += 4;
 
   // Answer
   /*
@@ -62,18 +63,19 @@ uint8_t parse_message(uint8_t *buffer, message_t *message, uint8_t message_bytes
   if (message == NULL) {
     return 1;
   }
-  if (message_bytes < 12) { // Header is 12 bytes
+  if (message_bytes < sizeof(header_t)) { // Header is 12 bytes
     return 2;
   }
   memcpy(&(message->header), buffer, sizeof(header_t));
   flip_header_endian(&(message->header));
-  buffer += 12;
+  buffer += sizeof(header_t);
 
   uint8_t char_cnt = 0;
   while (*(buffer + char_cnt) != 0 && char_cnt < (message_bytes - 12)) {
     ++char_cnt;
   }
   if (char_cnt + 4 > (message_bytes - 12)) {
+    printf("CNT %d\n", char_cnt);
     return 3;
   }
 
