@@ -48,7 +48,7 @@ uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id, uint8_t dns_id, uint
   printf("Scoreboard recieved generated test #%d\n", id);
 
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
-  ((std::deque<results_t>*) (s->queue))->push_back({.start_time=elapsed_time, .id=id, .dns_id=dns_id, .recieved=0, .rrl_removed=rrl_removed});
+  ((std::deque<results_t>*) (s->queue))->push_back({.start_time=elapsed_time, .id=id, .dns_id=dns_id, .recieved=0, .rrl_removed=rrl_removed, .finish_time=0.0});
   return 0;
 }
 
