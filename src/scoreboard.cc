@@ -82,12 +82,20 @@ void* dns_response_handler(void *_scoreboard) {
 uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id) {
   double elapsed_time = get_time_elapsed();
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
+  bool found = false;
   for (auto it = ((std::deque<results_t>*) (s->queue))->begin(); it != ((std::deque<results_t>*) (s->queue))->end(); ++it) {
     if (it->id == id) {
       it->finish_time = elapsed_time;
       it->recieved = 1;
-      return 0;
+      found = true;
     }
+  }
+  while (!((std::deque<results_t>*) (s->queue))->empty() && (((std::deque<results_t>*) (s->queue))->front().recieved || ((std::deque<results_t>*) (s->queue))->size() > 100)) {
+    write_results((FILE*) s->results_file, &(((std::deque<results_t>*) (s->queue))->front()));
+    ((std::deque<results_t>*) (s->queue))->pop_front();
+  }
+  if (found) {
+    return 0;
   }
   fprintf(stderr, "DNS answer had no corresponding request!");
   return 1;
