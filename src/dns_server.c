@@ -94,7 +94,14 @@ uint8_t update_and_online(dns_server_t *dns_server) {
   recv(new_socket, &port_cnt, 1, 0);
   uint16_t *ports = malloc(port_cnt * sizeof(uint16_t));
   for (int i = 0; i < port_cnt; ++i) {
-    recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0);
+    uint8_t ack = 1;
+    if (send(new_socket, &(ack), 1, 0) < 0) {
+      perror("Send()");
+      exit(7);
+    }
+    if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
+      recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
+    }
     printf("PORT=%d\n", ports[i]);
   }
   printf("HERE1\n");

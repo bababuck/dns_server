@@ -96,6 +96,8 @@ uint8_t check_tcp_connections(router_t *router) {
     exit(7);
   }
   for (int i = 0; i < router->server_cnt; ++i) {
+    uint8_t ack;
+    if (recv(new_socket, &ack, 1, 0) < 0) return 1;
     if (send(new_socket, (uint8_t*) &(router->servers[i]->tcp_port_num), sizeof(uint16_t), 0) < 0) {
       perror("Send()");
       exit(7);
@@ -107,6 +109,7 @@ uint8_t check_tcp_connections(router_t *router) {
   dns_server_t *result = NULL;
   recv(new_socket, (uint8_t*) &result, sizeof(dns_server_t*), MSG_DONTWAIT);
   if (result != NULL) {
+    printf(""
     add_dns_server(router, result);
   }
   pthread_mutex_unlock(router->tcp_mutex);
