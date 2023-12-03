@@ -119,7 +119,7 @@ uint8_t check_tcp_connections(router_t *router) {
     printf("%0x\n", ((uint8_t*) &result)[i]);
   }
   if (result != NULL) {
-    printf("ADDRESS %0x\n", result);
+    printf("ADDRESS %0lx\n", (uint8_t*) result);
     add_dns_server(router, result);
   }
   pthread_mutex_unlock(router->tcp_mutex);
