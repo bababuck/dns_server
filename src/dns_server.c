@@ -123,11 +123,7 @@ uint8_t update_and_online(dns_server_t *dns_server) {
   // Send out own address to be added
   uint8_t buffer[8];
   memcpy(buffer, &dns_server, sizeof(dns_server_t*));
-  printf("ADDRESS %0lx\n", (uint8_t*) dns_server);
   send(new_socket, buffer, sizeof(dns_server_t*), 0);
-  for (int i=0; i< sizeof(dns_server_t*);++i) {
-    printf("%0x\n", buffer[i]);
-  }
   printf("HERE3\n");
   close(new_socket);
   return 0;

@@ -64,6 +64,7 @@ uint8_t add_dns_server(router_t *router, dns_server_t *dns) {
   router->servers[router->server_cnt - 1] = dns;
   setup_response_thread(router->resp_thread, &check_servers, (void*) router);
   pthread_mutex_unlock(router->mutex);
+  printf("ADDED");
   return 0;
 }
 
@@ -109,17 +110,12 @@ uint8_t check_tcp_connections(router_t *router) {
   dns_server_t *result = NULL;
   uint8_t *res = (uint8_t*) &result;
   uint8_t size = 0;
-  printf("-----------------------------\n");
   while (size < sizeof(dns_server_t*)) {
     size += recv(new_socket, res, sizeof(dns_server_t*) - size, 0);
     res += size;
-    printf("%0x %0x\n", size, result);
-  }
-  for (int i=0; i< sizeof(dns_server_t*);++i) {
-    printf("%0x\n", ((uint8_t*) &result)[i]);
   }
   if (result != NULL) {
-    printf("ADDRESS %0lx\n", (uint8_t*) result);
+    //    printf("ADDRESS %0lx\n", (uint8_t*) result);
     add_dns_server(router, result);
   }
   pthread_mutex_unlock(router->tcp_mutex);
