@@ -70,3 +70,8 @@ uint8_t destroy_dns_server(dns_server_t *dns);
  * @returns Error code, 0 if successful
  */
 uint8_t recieve_request(dns_server_t *dns, uint8_t *message, uint8_t message_bytes);
+
+/**
+ * Update a DNS server and add it to the rotation to be used by the router.
+ */
+uint8_t update_and_online(dns_server_t *dns_server);

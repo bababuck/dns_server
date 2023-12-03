@@ -31,6 +31,7 @@ typedef struct {
   int socket;
   uint8_t id;
   void *ip_hash;
+  pthread_t *tcp_resp_thread;
 } coms_t;
 
 /**

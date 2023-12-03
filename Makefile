@@ -28,7 +28,7 @@ $(BUILD_DIR)/%.c.o: %.c
 # c++ source
 $(BUILD_DIR)/%.cc.o: %.cc
 	$(MKDIR_P) $(dir $@)
-	g++ -std=c++11 $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	g++ -std=c++17 $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 
 .PHONY: clean

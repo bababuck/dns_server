@@ -10,7 +10,50 @@ extern "C" {
 
 typedef std::unordered_map<std::string, std::string> hash_t;
 
-  coms_t *create_coms(uint8_t id, bool read_hosts, int tcp_socket) {
+uint8_t process_next_request(coms_t *coms);
+uint8_t send_entire_file(int socket, coms_t *coms);
+
+void* check_hosts_requests(void* _coms) {
+  coms_t *coms = (coms_t*) _coms;
+  while (true) {
+    process_next_request(coms);
+  }
+  return NULL;
+}
+
+uint8_t process_next_request(coms_t *coms) {
+  int new_socket = create_tcp_connections(coms->socket);
+
+  // Recive request type
+  uint8_t request_code;
+  recv(new_socket, &request_code, 1, 0);
+
+  if (request_code == 1) {
+    send_entire_file(new_socket, coms);
+  }
+  return 0;
+}
+
+uint8_t send_entire_file(int socket, coms_t *coms) {
+  uint8_t trans_cnt = ((hash_t*) coms->ip_hash)->size();
+  if (send(socket, &(trans_cnt), 1, 0) < 0) {
+    perror("Send()");
+    exit(7);
+  }
+  for (const auto & [ domain, ip ] : *((hash_t*) coms->ip_hash)) {
+    if (send(socket, (uint8_t*) domain.c_str(), domain.length() + 1, 0) < 0) {
+      perror("Send()");
+      exit(7);
+    }
+    if (send(socket, (uint8_t*) ip.c_str(), ip.length() + 1, 0) < 0) {
+      perror("Send()");
+      exit(7);
+    }
+  }
+  return 0;
+}
+
+coms_t *create_coms(uint8_t id, bool read_hosts, int tcp_socket) {
   coms_t *c = (coms_t*) malloc(sizeof(coms_t));
   c->coms = NULL;
   c->server_cnt = 0;
@@ -24,11 +67,9 @@ typedef std::unordered_map<std::string, std::string> hash_t;
       std::string ip = trans.second;
       (*((hash_t*) c->ip_hash))[domain] = ip;
     }
-  } else {
-    // Get from other host
-    // First, ask router for other IPs / Ports
-    // Then request for entire file
   }
+  c->tcp_resp_thread = (pthread_t*) malloc(sizeof(pthread_t));
+  setup_response_thread(c->tcp_resp_thread, &check_hosts_requests, (void*) c);
   // create hosts[id].txt
   return c;
 }
