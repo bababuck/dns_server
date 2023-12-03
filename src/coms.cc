@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "../include/coms.h"
+#include "../include/router.h"
 #include "../include/file_utils_cpp.h"
 
 extern "C" {
@@ -12,6 +13,19 @@ typedef std::unordered_map<std::string, std::string> hash_t;
 
 uint8_t process_next_request(coms_t *coms);
 uint8_t send_entire_file(int socket, coms_t *coms);
+uint8_t recieve_update(coms_t *coms, int socket);
+uint8_t actually_update(coms_t *coms, bool remove, char *domain, char *ip);
+
+/**
+ * Write out ip_hash to hosts.txt.
+ *
+ * Will do every-time on update (rather than finding the line to modify)
+ *
+ * @params coms: Coms object that needs to write
+ *
+ * @returns Error code, 0 if successful
+ */
+uint8_t write_hosts_file(coms_t *coms);
 
 void* check_hosts_requests(void* _coms) {
   coms_t *coms = (coms_t*) _coms;
@@ -31,7 +45,7 @@ uint8_t process_next_request(coms_t *coms) {
   if (request_code == 1) {
     send_entire_file(new_socket, coms);
   } else if (request_code == 2) {
-    receive_update(new_socket, coms);
+    recieve_update(coms, new_socket);
   }
   close(new_socket);
   return 0;
@@ -150,7 +164,7 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
 uint8_t recieve_update(coms_t *coms, int socket) {
   // Ack the request
   uint8_t ack = 1;
-  if (send(new_socket, &(ack), 1, 0) < 0) {
+  if (send(socket, &(ack), 1, 0) < 0) {
     perror("Send()");
     exit(7);
   }
@@ -158,14 +172,13 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   uint8_t *curr_loc = buffer - 1;
   do {
     int bytes;
-    if ((bytes = recv(new_socket, buffer, sizeof(buffer), 0)) < 0) {
-      close(new_socket);
+    if ((bytes = recv(socket, buffer, sizeof(buffer), 0)) < 0) {
+      close(socket);
       return 1;
     }
     curr_loc += bytes;
   } while (*curr_loc != 0);
-
-  bool remove = buffer == '1';
+  bool remove = *buffer == '1';
   char *domain = (char*) buffer;
   do {
     ++domain;
@@ -174,7 +187,7 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   do {
     ++ip;
   } while (*ip != ' ');
-  return recieve_update(coms, remove, domain, ip);
+  return actually_update(coms, remove, domain, ip);
 }
 
 uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip) {
@@ -184,7 +197,7 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
   // Get list of all other servers
   uint8_t port_cnt;
   recv(new_socket, &port_cnt, 1, 0);
-  uint16_t *ports = malloc(port_cnt * sizeof(uint16_t));
+  uint16_t *ports = (uint16_t*) malloc(port_cnt * sizeof(uint16_t));
   for (int i = 0; i < port_cnt; ++i) {
     uint8_t ack = 1;
     if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
@@ -202,27 +215,26 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
     int new_socket = setup_server(0, SOCK_STREAM, false);
     connect_to_tcp(new_socket, server_ip, ports[i]);
 
-    uint8_t *request_code = 2;
-    send(new_socket, (uint8_t*) request_code, 1, 0);
+    uint8_t request_code = 2;
+    send(new_socket, (uint8_t*) &request_code, 1, 0);
     // Let this timeout, if so, continue but return
     uint8_t ack;
     if (recv(new_socket, &ack, 1, 0) < 0) return 1;
 
-    send(new_socket, (uint8_t*) ((remove ? std::string('1') : std::string('0') + " " + std::string(domain) + " " + std::string(ip)).c_str(), strlen(domain) + strlen(ip) + 4, 0);
+    send(new_socket, (uint8_t*) ((remove ? "1" : "0") + std::string(" ") + std::string(domain) + " " + std::string(ip)).c_str(), strlen(domain) + strlen(ip) + 4, 0);
     // Let this timeout, if so, continue but return
-    uint8_t ack;
     if (recv(new_socket, &ack, 1, 0) < 0) return 1;
     close(new_socket);
   }
 
-  return recieve_update(coms, remove, domain, ip);
+  return actually_update(coms, remove, domain, ip);
 
   // If return fails, then go to next server, and query if everyone committed
   // If no one comitted, return false, and restart
   // If true, then have that server broadcast out change to everyone who didn't get it yet
 }
 
-uint8_t recieve_update(coms_t *coms, bool remove, char *domain, char *ip) {
+uint8_t actually_update(coms_t *coms, bool remove, char *domain, char *ip) {
   ++coms->version_num;
   if (remove) {
     ((hash_t*) coms->ip_hash)->erase(std::string(domain));
@@ -244,7 +256,6 @@ uint8_t write_hosts_file(coms_t *coms) {
     outfile << domain << " " << ip;
   }
   return 0;
-}
 }
 
 }
