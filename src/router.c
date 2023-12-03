@@ -6,6 +6,26 @@
  */
 void* check_servers(void *router);
 
+/**
+ * Check to see if any requests for IP list
+ *
+ * If TCP connection is made, transfer the relevant information.
+ *
+ * @param router: the router to send the list from
+ */
+void* check_ip_list_requests(void *router);
+
+/**
+ * Check to see if any TCP connection has been made
+ *
+ * If TCP connection is made, transfer the relevant information.
+ *
+ * @param router: the router to send the list from
+ *
+ * @returns Error code, 0 if successful
+ */
+uint8_t check_tcp_connections(router_t *router);
+
 router_t* create_router(router_mode_t mode, rrl_t *rrl) {
   router_t *r = malloc(sizeof(router_t));
   r->mode = mode;
@@ -14,9 +34,13 @@ router_t* create_router(router_mode_t mode, rrl_t *rrl) {
   r->server_cnt = 0;
   r->curr_server = 0;
   r->socket = setup_server(ROUTER_PORT_NUM, SOCK_DGRAM);
+  r->tcp_socket = setup_server(ROUTER_TCP_PORT_NUM, SOCK_STREAM);
   r->resp_thread = malloc(sizeof(pthread_t));
+  r->tcp_resp_thread = malloc(sizeof(pthread_t));
   r->mutex = malloc(sizeof(pthread_mutex_t));
+  r->tcp_mutex = malloc(sizeof(pthread_mutex_t));
   setup_response_thread(r->resp_thread, &check_servers, (void*) r);
+  setup_response_thread(r->tcp_resp_thread, &check_ip_list_requests, (void*) r);
   return r;
 }
 
@@ -44,6 +68,58 @@ void* check_servers(void *router) {
     query_response_time(router, 60);
   }
   return NULL;
+}
+
+void* check_ip_list_requests(void *router) {
+  router_t *r = (router_t*) router;
+  while (true) {
+    check_tcp_connections(router);
+  }
+  return NULL;
+}
+
+uint8_t check_tcp_connections(router_t *router) {
+  // Wait until connection is seed
+  if (listen(router->tcp_socket, 1) != 0) {
+    perror("Listen()");
+    exit(4);
+  }
+
+  // Accept connection
+  sockaddr_in_t client;
+  int new_socket;
+  unsigned int namelen = sizeof(client);
+  if ((new_socket = accept(router->tcp_socket, (sockaddr_t *) &client, &namelen)) == -1) {
+    perror("Accept()");
+    exit(5);
+  }
+
+  // Can't remove a server at the same time as sending this data over
+  // Once running, add_dns_server() should only be called from here
+  pthread_mutex_lock(router->tcp_mutex);
+
+  // Send IP data
+  if (send(new_socket, &(router->server_cnt), 1, 0) < 0) {
+    perror("Send()");
+    exit(7);
+  }
+  for (int i = 0; i < router->server_cnt; ++i) {
+    if (send(new_socket, (uint8_t*) (router->servers[i]->ip), strlen(router->servers[i]->ip) + 1, 0) < 0) {
+      perror("Send()");
+      exit(7);
+    }
+  }
+
+  // Server has 5 seconds to aquire the new data, other wise ignored and connection closer
+  sleep(5);
+  dns_server_t *result = NULL;
+  recv(new_socket, (uint8_t*) &result, sizeof(dns_server_t*), MSG_DONTWAIT);
+  if (result != NULL) {
+    add_dns_server(router, result);
+  }
+  pthread_mutex_unlock(router->tcp_mutex);
+  close(new_socket);
+  return 0;
 }
 
 uint8_t query_response_time(router_t *router, uint8_t allowed_seconds) {
@@ -118,6 +194,7 @@ uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len,
 
 uint8_t remove_server(router_t *router, uint8_t dns_id) {
   pthread_mutex_lock(router->mutex);
+  pthread_mutex_lock(router->tcp_mutex);
   bool deleted = false;
   for (int i = 0; i < router->server_cnt; ++i) {
     if (deleted) {
@@ -133,5 +210,6 @@ uint8_t remove_server(router_t *router, uint8_t dns_id) {
   }
   router->servers = realloc(router->servers, router->server_cnt * sizeof(dns_server_t*));
   pthread_mutex_unlock(router->mutex);
+  pthread_mutex_unlock(router->tcp_mutex);
   return 0;
 }

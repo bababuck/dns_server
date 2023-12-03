@@ -13,6 +13,7 @@
 #pragma once
 
 #define ROUTER_PORT_NUM 2055
+#define ROUTER_TCP_PORT_NUM 2055
 
 #include <pthread.h>
 #include <stdint.h>
@@ -38,8 +39,11 @@ typedef struct {
   uint8_t server_cnt;
   uint8_t curr_server;
   int socket;
+  int tcp_socket;
   uint16_t query_counter;
   pthread_t *resp_thread;
+  pthread_t *tcp_resp_thread;
+  pthread_mutex_t *tcp_mutex;
   pthread_mutex_t *mutex;
 } router_t;
 
