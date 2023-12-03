@@ -88,7 +88,6 @@ uint8_t update_and_online(dns_server_t *dns_server) {
   // Connect to Router TCP
   connect_to_tcp(new_socket, dns_server->router_ip, ROUTER_TCP_PORT_NUM);
 
-  printf("HERE0\n");
   // Recieve all data
   uint8_t port_cnt;
   recv(new_socket, &port_cnt, 1, 0);
@@ -102,9 +101,7 @@ uint8_t update_and_online(dns_server_t *dns_server) {
     if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
       recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
     }
-    printf("PORT=%d\n", ports[i]);
   }
-  printf("HERE1\n");
   // Connect with other DNS servers and recieve hosts.txt
   bool found = false;
   for (int i = 0; i < port_cnt; ++i) {
@@ -113,7 +110,6 @@ uint8_t update_and_online(dns_server_t *dns_server) {
       break;
     }
   }
-  printf("HERE2\n");
 
   if (!found) {
     close(new_socket);
@@ -124,7 +120,6 @@ uint8_t update_and_online(dns_server_t *dns_server) {
   uint8_t buffer[8];
   memcpy(buffer, &dns_server, sizeof(dns_server_t*));
   send(new_socket, buffer, sizeof(dns_server_t*), 0);
-  printf("HERE3\n");
   close(new_socket);
   return 0;
 }

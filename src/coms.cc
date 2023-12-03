@@ -29,7 +29,6 @@ uint8_t process_next_request(coms_t *coms) {
   recv(new_socket, &request_code, 1, 0);
 
   if (request_code == 1) {
-    printf("WOW\n");
     send_entire_file(new_socket, coms);
   }
   close(new_socket);
@@ -45,8 +44,6 @@ uint8_t send_entire_file(int socket, coms_t *coms) {
   for (const auto & [ domain, ip ] : *((hash_t*) coms->ip_hash)) {
     uint8_t ack;
     if (recv(socket, &ack, 1, 0) < 0) return 1;
-    printf("SENDING\n");
-    printf("%s\n", (domain + " " + ip).c_str());
     if (send(socket, (uint8_t*) (domain + " " + ip).c_str(), (domain + " " + ip).length() + 1, 0) < 0) {
       perror("Send()");
       exit(7);
@@ -128,7 +125,6 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
       perror("Send()");
       exit(7);
     }
-    printf("RECIVED\n");
     uint8_t *curr_loc = buffer - 1;
     do {
       int bytes;
@@ -139,7 +135,6 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
       curr_loc += bytes;
     } while (*curr_loc != 0);
 
-    printf("%s\n", buffer);
     char *domain = (char*) buffer;
     char *ip = (char*) buffer;
     while (*ip != ' ') {

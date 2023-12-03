@@ -58,13 +58,10 @@ uint8_t destroy_router(router_t *router) {
 
 uint8_t add_dns_server(router_t *router, dns_server_t *dns) {
   pthread_mutex_lock(router->mutex);
-  kill_response_thread(router->resp_thread);
   ++(router->server_cnt);
   router->servers = realloc(router->servers, router->server_cnt * sizeof(dns_server_t*));
   router->servers[router->server_cnt - 1] = dns;
-  setup_response_thread(router->resp_thread, &check_servers, (void*) router);
   pthread_mutex_unlock(router->mutex);
-  printf("ADDED");
   return 0;
 }
 
