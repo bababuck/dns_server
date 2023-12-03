@@ -30,6 +30,8 @@ uint8_t process_next_request(coms_t *coms) {
 
   if (request_code == 1) {
     send_entire_file(new_socket, coms);
+  } else if (request_code == 2) {
+    receive_update(new_socket, coms);
   }
   close(new_socket);
   return 0;
@@ -70,12 +72,10 @@ coms_t *create_coms(uint8_t id, bool read_hosts, int tcp_socket) {
   c->version_num = 0;
   c->tcp_resp_thread = (pthread_t*) malloc(sizeof(pthread_t));
   setup_response_thread(c->tcp_resp_thread, &check_hosts_requests, (void*) c);
-  // create hosts[id].txt
   return c;
 }
 
 uint8_t destroy_coms(coms_t *coms) {
-  // close hosts[id].txt
   kill_response_thread(coms->tcp_resp_thread);
   close(coms->socket);
   delete (hash_t*) coms->ip_hash;
@@ -147,7 +147,11 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
   return 0;
 }
 
-  uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip) {
+uint8_t recieve_update(coms_t *coms, int socket) {
+
+}
+
+uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip) {
   int new_socket = setup_server(0, SOCK_STREAM, false);
   connect_to_tcp(new_socket, router_ip, ROUTER_TCP_PORT_NUM);
 
@@ -157,12 +161,12 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
   uint16_t *ports = malloc(port_cnt * sizeof(uint16_t));
   for (int i = 0; i < port_cnt; ++i) {
     uint8_t ack = 1;
+    if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
+      recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
+    }
     if (send(new_socket, &(ack), 1, 0) < 0) {
       perror("Send()");
       exit(7);
-    }
-    if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
-      recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
     }
   }
   close(new_socket);
@@ -172,25 +176,34 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
     int new_socket = setup_server(0, SOCK_STREAM, false);
     connect_to_tcp(new_socket, server_ip, ports[i]);
 
-    send(new_socket, (uint8_t*) ((remove ? std::string((char) 1) : std::string((char) 0)) + " " + std::string(domain) + " " + std::string(ip)).c_str(), strlen(domain) + strlen(ip) + 4, 0);
+    uint8_t *request_code = 2;
+    send(new_socket, (uint8_t*) request_code, 1, 0);
+    // Let this timeout, if so, continue but return
+    uint8_t ack;
+    if (recv(new_socket, &ack, 1, 0) < 0) return 1;
+
+    send(new_socket, (uint8_t*) ((remove ? std::string('1') : std::string('0') + " " + std::string(domain) + " " + std::string(ip)).c_str(), strlen(domain) + strlen(ip) + 4, 0);
+    // Let this timeout, if so, continue but return
     uint8_t ack;
     if (recv(new_socket, &ack, 1, 0) < 0) return 1;
     close(new_socket);
   }
 
-  ++coms->version_num;
-  if (remove) {
-    version
-  } else {
-
-  }
-  return 0;
-
-  // On reciept, all other servers need to increment version counter, add to hosts file, update ip_hash
+  return recieve_update(coms, remove, domain, ip);
 
   // If return fails, then go to next server, and query if everyone committed
   // If no one comitted, return false, and restart
   // If true, then have that server broadcast out change to everyone who didn't get it yet
+}
+
+uint8_t recieve_update(coms_t *coms, bool remove, char *domain, char *ip) {
+  ++coms->version_num;
+  if (remove) {
+    ((hash_t*) coms->ip_hash)->erase(std::string(domain));
+  } else {
+    (*((hash_t*) coms->ip_hash))[std::string(domain)] = std::string(ip);
+  }
+  return write_hosts_file(coms);
 }
 
 /**
