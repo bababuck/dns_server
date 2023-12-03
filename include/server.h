@@ -26,7 +26,7 @@ typedef struct sockaddr sockaddr_t;
  *
  * @returns socket descriptor
  */
-int setup_server(uint16_t port_num, int protocol);
+int setup_server(uint16_t port_num, int protocol, bool bind_socket);
 
 /**
  * Send a packet from a already bound socket.
@@ -78,3 +78,5 @@ uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info);
 char* get_ip();
 
 int create_tcp_connections(int tcp_socket);
+
+uint8_t connect_to_tcp(int tcp_socket, char *ip, uint16_t port_num);

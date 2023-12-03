@@ -103,10 +103,11 @@ const char* translate_ip(coms_t *coms, char* domain);
  *
  * @params coms: coms object to use
  * @params port: port to connect with
+ * @params ip: Ip to send to
  *
  * @returns Error code, 0 if successful
  */
-uint8_t request_hosts(coms_t *coms, uint16_t port);
+uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip);
 #ifdef __cplusplus
 }
 #endif

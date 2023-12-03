@@ -3,11 +3,14 @@
 
 #include "../include/server.h"
 
-int setup_server(uint16_t port_num, int protocol) {
+int setup_server(uint16_t port_num, int protocol, bool bind_socket) {
   int socket_info = socket(AF_INET, protocol, 0);
   if (socket_info < 0) {
     perror("socket");
     exit(1);
+  }
+  if (!bind_socket) {
+    return socket_info;
   }
 
   sockaddr_in_t server;
@@ -121,5 +124,20 @@ int create_tcp_connections(int tcp_socket) {
     perror("Accept()");
     exit(5);
   }
+  printf("ACCEPTED\n");
   return new_socket;
+}
+
+uint8_t connect_to_tcp(int tcp_socket, char *ip, uint16_t port_num) {
+  sockaddr_in_t dest_server;
+  dest_server.sin_family  = AF_INET;  // Internet Domain
+  dest_server.sin_port = htons(port_num); // Server Port
+  dest_server.sin_addr.s_addr = inet_addr(ip); // Server's Address
+
+  printf("%d\n", tcp_socket);
+  if (connect(tcp_socket, (sockaddr_t*) &dest_server, sizeof(dest_server)) < 0) {
+    perror("Connect()");
+    exit(4);
+  }
+  return 0;
 }

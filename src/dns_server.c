@@ -12,8 +12,8 @@ void* query_handler(void *_dns_server);
 
 dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, uint16_t recieving_port, bool read_host) {
   dns_server_t *dns_server = malloc(sizeof(dns_server_t));
-  dns_server->socket = setup_server(recieving_port, SOCK_DGRAM);
-  dns_server->tcp_socket = setup_server(recieving_port + 128, SOCK_STREAM);
+  dns_server->socket = setup_server(recieving_port, SOCK_DGRAM, true);
+  dns_server->tcp_socket = setup_server(recieving_port + 128, SOCK_STREAM, true);
   dns_server->scoreboard_port = scoreboard_port;
   dns_server->scoreboard_ip = scoreboard_ip;
   dns_server->router_port = ROUTER_PORT_NUM;
@@ -32,6 +32,7 @@ dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, u
 uint8_t destroy_dns_server(dns_server_t *dns_server) {
   kill_response_thread(dns_server->response_thread);
   close(dns_server->socket);
+  close(dns_server->tcp_socket);
   free(dns_server->scoreboard_ip);
   free(dns_server->router_ip);
   free(dns_server->ip);
@@ -83,32 +84,38 @@ uint8_t recieve_request(dns_server_t *dns_server, uint8_t *message, uint8_t mess
 }
 
 uint8_t update_and_online(dns_server_t *dns_server) {
+  int new_socket = setup_server(0, SOCK_STREAM, false);
   // Connect to Router TCP
-  int new_socket = create_tcp_connections(dns_server->tcp_socket);
+  connect_to_tcp(new_socket, dns_server->router_ip, ROUTER_TCP_PORT_NUM);
 
+  printf("HERE0\n");
   // Recieve all data
   uint8_t port_cnt;
   recv(new_socket, &port_cnt, 1, 0);
   uint16_t *ports = malloc(port_cnt * sizeof(uint16_t));
   for (int i = 0; i < port_cnt; ++i) {
     recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0);
+    printf("PORT=%d\n", ports[i]);
   }
-
+  printf("HERE1\n");
   // Connect with other DNS servers and recieve hosts.txt
   bool found = false;
   for (int i = 0; i < port_cnt; ++i) {
-    if (request_hosts(dns_server->coms, ports[i]) == 0) {
+    if (request_hosts(dns_server->coms, ports[i], dns_server->ip) == 0) {
       found = true;
       break;
     }
   }
+  printf("HERE2\n");
 
   if (!found) {
+    close(new_socket);
     return 1;
   }
 
   // Send out own address to be added
   send(new_socket, (uint8_t*) dns_server, sizeof(dns_server_t*), 0);
-
+  printf("HERE3\n");
+  close(new_socket);
   return 0;
 }

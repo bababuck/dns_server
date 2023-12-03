@@ -33,8 +33,8 @@ router_t* create_router(router_mode_t mode, rrl_t *rrl) {
   r->servers = NULL;
   r->server_cnt = 0;
   r->curr_server = 0;
-  r->socket = setup_server(ROUTER_PORT_NUM, SOCK_DGRAM);
-  r->tcp_socket = setup_server(ROUTER_TCP_PORT_NUM, SOCK_STREAM);
+  r->socket = setup_server(ROUTER_PORT_NUM, SOCK_DGRAM, true);
+  r->tcp_socket = setup_server(ROUTER_TCP_PORT_NUM, SOCK_STREAM, true);
   r->resp_thread = malloc(sizeof(pthread_t));
   r->tcp_resp_thread = malloc(sizeof(pthread_t));
   r->mutex = malloc(sizeof(pthread_mutex_t));
@@ -46,7 +46,12 @@ router_t* create_router(router_mode_t mode, rrl_t *rrl) {
 
 uint8_t destroy_router(router_t *router) {
   kill_response_thread(router->resp_thread);
+  kill_response_thread(router->tcp_resp_thread);
   free(router->servers);
+  close(router->socket);
+  close(router->tcp_socket);
+  free(router->mutex);
+  free(router->tcp_mutex);
   free(router);
   return 0;
 }

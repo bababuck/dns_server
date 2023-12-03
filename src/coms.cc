@@ -29,6 +29,7 @@ uint8_t process_next_request(coms_t *coms) {
   recv(new_socket, &request_code, 1, 0);
 
   if (request_code == 1) {
+    printf("WOW\n");
     send_entire_file(new_socket, coms);
   }
   return 0;
@@ -41,14 +42,14 @@ uint8_t send_entire_file(int socket, coms_t *coms) {
     exit(7);
   }
   for (const auto & [ domain, ip ] : *((hash_t*) coms->ip_hash)) {
-    if (send(socket, (uint8_t*) domain.c_str(), domain.length() + 1, 0) < 0) {
+    printf("SENDING\n");
+    printf("%s\n", (domain + " " + ip).c_str());
+    if (send(socket, (uint8_t*) (domain + " " + ip).c_str(), (domain + " " + ip).length() + 1, 0) < 0) {
       perror("Send()");
       exit(7);
     }
-    if (send(socket, (uint8_t*) ip.c_str(), ip.length() + 1, 0) < 0) {
-      perror("Send()");
-      exit(7);
-    }
+    uint8_t ack;
+    if (recv(new_socket, &ack, 1, 0) < 0) return 1;
   }
   return 0;
 }
@@ -76,6 +77,7 @@ coms_t *create_coms(uint8_t id, bool read_hosts, int tcp_socket) {
 
 uint8_t destroy_coms(coms_t *coms) {
   // close hosts[id].txt
+  kill_response_thread(coms->tcp_resp_thread);
   close(coms->socket);
   delete (hash_t*) coms->ip_hash;
   free(coms);
@@ -104,9 +106,10 @@ const char* translate_ip(coms_t *coms, char* domain) {
   return NULL;
 }
 
-uint8_t request_hosts(coms_t *coms, uint16_t port) {
+uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
   ((hash_t*) coms->ip_hash)->clear();
-  int new_socket = create_tcp_connections(coms->socket);
+  int new_socket = setup_server(0, SOCK_STREAM, false);
+  connect_to_tcp(new_socket, ip, port);
 
   uint8_t request_code = 1; // Saying whole file
   if (send(new_socket, &request_code, 1, 0) < 0) {
@@ -117,12 +120,17 @@ uint8_t request_hosts(coms_t *coms, uint16_t port) {
   // Recieve all data
   uint8_t trans_cnt;
   recv(new_socket, &trans_cnt, 1, 0);
-  uint8_t d_buffer[128];
-  uint8_t i_buffer[128];
+  uint8_t buffer[128];
   for (int i = 0; i < trans_cnt; ++i) {
-    if (recv(new_socket, d_buffer, sizeof(d_buffer), 0) < 0) return 1;
-    if (recv(new_socket, i_buffer, sizeof(i_buffer), 0) < 0) return 1;
-    (*((hash_t*) coms->ip_hash))[std::string((char*) d_buffer)] = std::string((char*) i_buffer);
+    printf("RECIVED\n");
+    if (recv(new_socket, buffer, sizeof(buffer), 0) < 0) return 1;
+    printf("%s\n", buffer);
+    char *domain = (char*) buffer;
+    char *ip = (char*) buffer;
+    while (*ip != ' ') {
+      ++ip;
+    }
+    (*((hash_t*) coms->ip_hash))[std::string(domain)] = std::string(ip);
   }
   return 0;
 }

@@ -107,7 +107,7 @@ scoreboard_t* create_scoreboard(char *testname, uint16_t dns_port) {
   s->lock = (void*) new std::mutex();
   s->queue = (void*) new std::deque<results_t>();
   s->dns_response_thread = (pthread_t*) malloc(sizeof(pthread_t));
-  s->socket = setup_server(dns_port, SOCK_DGRAM);
+  s->socket = setup_server(dns_port, SOCK_DGRAM, true);
   std::string results_filename = std::string(testname) + "_results.csv";
   s->results_file = (void*) fopen(results_filename.c_str(), "w");
 
