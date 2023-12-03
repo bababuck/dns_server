@@ -116,6 +116,7 @@ uint8_t run_test(arguments_t *arguments) {
   generator->dns_servers = realloc(generator->dns_servers, generator->dns_server_cnt);
   generator->dns_servers[generator->dns_server_cnt - 1] = create_dns_server(get_ip(), CLIENT_PORT, DNS_PORT_NUM + generator->dns_server_cnt - 1, false);
   printf("enter\n");
+  printf("ADDRESS %0x\n", (uint8_t*) generator->dns_servers[generator->dns_server_cnt - 1]);
   update_and_online(generator->dns_servers[generator->dns_server_cnt - 1]);
   send_single_test(generator, 0);
   send_single_test(generator, 1);

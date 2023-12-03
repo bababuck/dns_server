@@ -104,12 +104,22 @@ uint8_t check_tcp_connections(router_t *router) {
     }
   }
 
-  // Server has 5 seconds to aquire the new data, other wise ignored and connection closer
-  sleep(5);
+  // Server has 5 seconds to aquire the new data, other wise ignored and connection closed
+  sleep(2);
   dns_server_t *result = NULL;
-  recv(new_socket, (uint8_t*) &result, sizeof(dns_server_t*), MSG_DONTWAIT);
+  uint8_t *res = (uint8_t*) &result;
+  uint8_t size = 0;
+  printf("-----------------------------\n");
+  while (size < sizeof(dns_server_t*)) {
+    size += recv(new_socket, res, sizeof(dns_server_t*) - size, 0);
+    res += size;
+    printf("%0x %0x\n", size, result);
+  }
+  for (int i=0; i< sizeof(dns_server_t*);++i) {
+    printf("%0x\n", ((uint8_t*) &result)[i]);
+  }
   if (result != NULL) {
-    printf(""
+    printf("ADDRESS %0x\n", result);
     add_dns_server(router, result);
   }
   pthread_mutex_unlock(router->tcp_mutex);
