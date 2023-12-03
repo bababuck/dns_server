@@ -32,6 +32,7 @@ typedef struct {
   uint8_t id;
   void *ip_hash;
   pthread_t *tcp_resp_thread;
+  uint8_t version_num;
 } coms_t;
 
 /**

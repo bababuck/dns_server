@@ -67,6 +67,7 @@ coms_t *create_coms(uint8_t id, bool read_hosts, int tcp_socket) {
       (*((hash_t*) c->ip_hash))[domain] = ip;
     }
   }
+  c->version_num = 0;
   c->tcp_resp_thread = (pthread_t*) malloc(sizeof(pthread_t));
   setup_response_thread(c->tcp_resp_thread, &check_hosts_requests, (void*) c);
   // create hosts[id].txt
@@ -169,18 +170,42 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
   // Send out req to all, if don't get ack from all, abort
   for (int i = 0; i < port_cnt; ++i) {
     int new_socket = setup_server(0, SOCK_STREAM, false);
-    connect_to_tcp(new_socket, serverr_ip, ports[i]);
+    connect_to_tcp(new_socket, server_ip, ports[i]);
 
-    send(socket, (uint8_t*) (domain + " " + ip).c_str(), (domain + " " + ip).length() + 1, 0) < 0) {
+    send(new_socket, (uint8_t*) ((remove ? std::string((char) 1) : std::string((char) 0)) + " " + std::string(domain) + " " + std::string(ip)).c_str(), strlen(domain) + strlen(ip) + 4, 0);
+    uint8_t ack;
+    if (recv(new_socket, &ack, 1, 0) < 0) return 1;
+    close(new_socket);
   }
 
-  // Send out confirm, everyone commits, ack's
+  ++coms->version_num;
+  if (remove) {
+    version
+  } else {
 
-  // Return done
+  }
+  return 0;
+
+  // On reciept, all other servers need to increment version counter, add to hosts file, update ip_hash
 
   // If return fails, then go to next server, and query if everyone committed
   // If no one comitted, return false, and restart
   // If true, then have that server broadcast out change to everyone who didn't get it yet
+}
+
+/**
+ * Write out ip_hash to hosts.txt.
+ *
+ * Will do every-time on update (rather than finding the line to modify)
+ */
+uint8_t write_hosts_file(coms_t *coms) {
+  hash_t *translations = (hash_t*) coms->ip_hash;
+  std::ofstream outfile("hosts" + std::to_string(coms->id) + ".txt");
+  for (const auto & [ domain, ip ] : *((hash_t*) coms->ip_hash)) {
+    outfile << domain << " " << ip;
+  }
+  return 0;
+}
 }
 
 }
