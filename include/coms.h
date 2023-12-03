@@ -40,10 +40,11 @@ typedef struct {
  *
  * @params id: id of the created module.
  * @params read_host: Read from host file rather than requesting from other server
+ * @params tcp_socket: initialized socket to use for host file transfers
  *
  * @returns newly created coms module
  */
-coms_t *create_coms(uint8_t id, bool read_host);
+  coms_t *create_coms(uint8_t id, bool read_host, int tcp_socket);
 
 /**
  * Deallocate a coms module
@@ -96,6 +97,15 @@ uint8_t handle_update_request(coms_t *coms, uint8_t id);
  */
 const char* translate_ip(coms_t *coms, char* domain);
 
+/**
+ * Gather hosts.txt information from other sever.
+ *
+ * @params coms: coms object to use
+ * @params port: port to connect with
+ *
+ * @returns Error code, 0 if successful
+ */
+uint8_t request_hosts(coms_t *coms, uint16_t port);
 #ifdef __cplusplus
 }
 #endif

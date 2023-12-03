@@ -76,3 +76,5 @@ uint8_t kill_response_thread(pthread_t *thread);
 uint8_t recieve_message(uint8_t *buffer, uint8_t length, int socket_info);
 
 char* get_ip();
+
+int create_tcp_connections(int tcp_socket);

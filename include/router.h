@@ -13,7 +13,7 @@
 #pragma once
 
 #define ROUTER_PORT_NUM 2055
-#define ROUTER_TCP_PORT_NUM 2055
+#define ROUTER_TCP_PORT_NUM 2056
 
 #include <pthread.h>
 #include <stdint.h>

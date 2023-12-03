@@ -79,20 +79,7 @@ void* check_ip_list_requests(void *router) {
 }
 
 uint8_t check_tcp_connections(router_t *router) {
-  // Wait until connection is seed
-  if (listen(router->tcp_socket, 1) != 0) {
-    perror("Listen()");
-    exit(4);
-  }
-
-  // Accept connection
-  sockaddr_in_t client;
-  int new_socket;
-  unsigned int namelen = sizeof(client);
-  if ((new_socket = accept(router->tcp_socket, (sockaddr_t *) &client, &namelen)) == -1) {
-    perror("Accept()");
-    exit(5);
-  }
+  int new_socket = create_tcp_connections(router->tcp_socket);
 
   // Can't remove a server at the same time as sending this data over
   // Once running, add_dns_server() should only be called from here
@@ -104,7 +91,7 @@ uint8_t check_tcp_connections(router_t *router) {
     exit(7);
   }
   for (int i = 0; i < router->server_cnt; ++i) {
-    if (send(new_socket, (uint8_t*) (router->servers[i]->ip), strlen(router->servers[i]->ip) + 1, 0) < 0) {
+    if (send(new_socket, (uint8_t*) &(router->servers[i]->tcp_port_num), sizeof(uint16_t), 0) < 0) {
       perror("Send()");
       exit(7);
     }

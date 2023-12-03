@@ -22,12 +22,14 @@
 typedef struct {
   coms_t *coms;
   int socket;
+  int tcp_socket;
   char *scoreboard_ip;
   uint16_t scoreboard_port;
   char *router_ip;
   uint16_t router_port;
   uint16_t id;
   uint16_t port_num;
+  uint16_t tcp_port_num;
   char *ip;
   pthread_t *response_thread;
 } dns_server_t;

@@ -10,11 +10,11 @@ extern "C" {
 
 typedef std::unordered_map<std::string, std::string> hash_t;
 
-coms_t *create_coms(uint8_t id, bool read_hosts) {
+  coms_t *create_coms(uint8_t id, bool read_hosts, int tcp_socket) {
   coms_t *c = (coms_t*) malloc(sizeof(coms_t));
   c->coms = NULL;
   c->server_cnt = 0;
-  c->socket = -1; // Socket will be needed for TCP
+  c->socket = tcp_socket;
   c->id = id;
   c->ip_hash = (void*) new hash_t();
   if (read_hosts) {
@@ -61,6 +61,29 @@ const char* translate_ip(coms_t *coms, char* domain) {
     return ((*ip_hash)[domain]).c_str();
   }
   return NULL;
+}
+
+uint8_t request_hosts(coms_t *coms, uint16_t port) {
+  ((hash_t*) coms->ip_hash)->clear();
+  int new_socket = create_tcp_connections(coms->socket);
+
+  uint8_t request_code = 1; // Saying whole file
+  if (send(new_socket, &request_code, 1, 0) < 0) {
+    perror("Send()");
+    exit(7);
+  }
+
+  // Recieve all data
+  uint8_t trans_cnt;
+  recv(new_socket, &trans_cnt, 1, 0);
+  uint8_t d_buffer[128];
+  uint8_t i_buffer[128];
+  for (int i = 0; i < trans_cnt; ++i) {
+    if (recv(new_socket, d_buffer, sizeof(d_buffer), 0) < 0) return 1;
+    if (recv(new_socket, i_buffer, sizeof(i_buffer), 0) < 0) return 1;
+    (*((hash_t*) coms->ip_hash))[std::string((char*) d_buffer)] = std::string((char*) i_buffer);
+  }
+  return 0;
 }
 
 }

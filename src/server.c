@@ -105,3 +105,21 @@ char* get_ip() {
   if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
   return NULL;
 }
+
+int create_tcp_connections(int tcp_socket) {
+  // Wait until connection is seed
+  if (listen(tcp_socket, 1) != 0) {
+    perror("Listen()");
+    exit(4);
+  }
+
+  // Accept connection
+  sockaddr_in_t client;
+  int new_socket;
+  unsigned int namelen = sizeof(client);
+  if ((new_socket = accept(tcp_socket, (sockaddr_t *) &client, &namelen)) == -1) {
+    perror("Accept()");
+    exit(5);
+  }
+  return new_socket;
+}
