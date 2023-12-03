@@ -138,9 +138,9 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
 
     char *domain = (char*) buffer;
     char *ip = (char*) buffer;
-    while (*ip != ' ') {
+    do {
       ++ip;
-    }
+    } while (*ip != ' ');
     (*((hash_t*) coms->ip_hash))[std::string(domain)] = std::string(ip);
   }
   close(new_socket);
@@ -148,7 +148,33 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
 }
 
 uint8_t recieve_update(coms_t *coms, int socket) {
+  // Ack the request
+  uint8_t ack = 1;
+  if (send(new_socket, &(ack), 1, 0) < 0) {
+    perror("Send()");
+    exit(7);
+  }
+  uint8_t buffer[128];
+  uint8_t *curr_loc = buffer - 1;
+  do {
+    int bytes;
+    if ((bytes = recv(new_socket, buffer, sizeof(buffer), 0)) < 0) {
+      close(new_socket);
+      return 1;
+    }
+    curr_loc += bytes;
+  } while (*curr_loc != 0);
 
+  bool remove = buffer == '1';
+  char *domain = (char*) buffer;
+  do {
+    ++domain;
+  } while (*domain != ' ');
+  char *ip = (char*) domain;
+  do {
+    ++ip;
+  } while (*ip != ' ');
+  return recieve_update(coms, remove, domain, ip);
 }
 
 uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip) {
