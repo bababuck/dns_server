@@ -146,4 +146,41 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
   return 0;
 }
 
+  uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip) {
+  int new_socket = setup_server(0, SOCK_STREAM, false);
+  connect_to_tcp(new_socket, router_ip, ROUTER_TCP_PORT_NUM);
+
+  // Get list of all other servers
+  uint8_t port_cnt;
+  recv(new_socket, &port_cnt, 1, 0);
+  uint16_t *ports = malloc(port_cnt * sizeof(uint16_t));
+  for (int i = 0; i < port_cnt; ++i) {
+    uint8_t ack = 1;
+    if (send(new_socket, &(ack), 1, 0) < 0) {
+      perror("Send()");
+      exit(7);
+    }
+    if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
+      recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
+    }
+  }
+  close(new_socket);
+
+  // Send out req to all, if don't get ack from all, abort
+  for (int i = 0; i < port_cnt; ++i) {
+    int new_socket = setup_server(0, SOCK_STREAM, false);
+    connect_to_tcp(new_socket, serverr_ip, ports[i]);
+
+    send(socket, (uint8_t*) (domain + " " + ip).c_str(), (domain + " " + ip).length() + 1, 0) < 0) {
+  }
+
+  // Send out confirm, everyone commits, ack's
+
+  // Return done
+
+  // If return fails, then go to next server, and query if everyone committed
+  // If no one comitted, return false, and restart
+  // If true, then have that server broadcast out change to everyone who didn't get it yet
+}
+
 }

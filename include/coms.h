@@ -108,6 +108,9 @@ const char* translate_ip(coms_t *coms, char* domain);
  * @returns Error code, 0 if successful
  */
 uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip);
+
+uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip);
+
 #ifdef __cplusplus
 }
 #endif
