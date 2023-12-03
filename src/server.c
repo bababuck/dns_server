@@ -98,7 +98,7 @@ char* get_ip() {
       char addressBuffer[INET_ADDRSTRLEN];
       inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
       if (strcmp(ifa->ifa_name, "en0") == 0) {
-        //	printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+        //        printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
 	char *ip = strdup(addressBuffer);
 	freeifaddrs(ifAddrStruct);
 	return ip;
