@@ -119,6 +119,10 @@ uint8_t run_test(arguments_t *arguments) {
   generator->dns_servers[generator->dns_server_cnt - 1] = new_server;
   // This needs to be own thread
   update_and_online(generator->dns_servers[generator->dns_server_cnt - 1]);
+
+  ip = get_ip();
+  update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "test", "69.69.69.69", generator->dns_servers[0]->tcp_port_num);
+  free(ip);
   sleep(10);
   send_single_test(generator, 0);
   send_single_test(generator, 1);

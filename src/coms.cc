@@ -155,6 +155,8 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
     do {
       ++ip;
     } while (*ip != ' ');
+    *ip = (char) 0;
+    ++ip;
     (*((hash_t*) coms->ip_hash))[std::string(domain)] = std::string(ip);
   }
   close(new_socket);
@@ -183,14 +185,18 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   do {
     ++domain;
   } while (*domain != ' ');
+  *domain = 0;
+  ++domain;
   char *ip = (char*) domain;
   do {
     ++ip;
   } while (*ip != ' ');
+  *ip = 0;
+  ++ip;
   return actually_update(coms, remove, domain, ip);
 }
 
-uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip) {
+uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip, uint16_t own_port) {
   int new_socket = setup_server(0, SOCK_STREAM, false);
   connect_to_tcp(new_socket, router_ip, ROUTER_TCP_PORT_NUM);
 
@@ -200,18 +206,21 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
   uint16_t *ports = (uint16_t*) malloc(port_cnt * sizeof(uint16_t));
   for (int i = 0; i < port_cnt; ++i) {
     uint8_t ack = 1;
-    if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
-      recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
-    }
     if (send(new_socket, &(ack), 1, 0) < 0) {
       perror("Send()");
       exit(7);
     }
+    if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
+      recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
+    }
   }
   close(new_socket);
 
+  // TODO: ignore self lol
+
   // Send out req to all, if don't get ack from all, abort
   for (int i = 0; i < port_cnt; ++i) {
+    if (ports[i] == own_port) continue;
     int new_socket = setup_server(0, SOCK_STREAM, false);
     connect_to_tcp(new_socket, server_ip, ports[i]);
 
@@ -253,7 +262,7 @@ uint8_t write_hosts_file(coms_t *coms) {
   hash_t *translations = (hash_t*) coms->ip_hash;
   std::ofstream outfile("hosts" + std::to_string(coms->id) + ".txt");
   for (const auto & [ domain, ip ] : *((hash_t*) coms->ip_hash)) {
-    outfile << domain << " " << ip;
+    outfile << domain << " " << ip << "\n";
   }
   return 0;
 }
