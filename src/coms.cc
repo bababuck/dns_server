@@ -14,7 +14,7 @@ typedef std::unordered_map<std::string, std::string> hash_t;
 uint8_t process_next_request(coms_t *coms);
 uint8_t send_entire_file(int socket, coms_t *coms);
 uint8_t recieve_update(coms_t *coms, int socket);
-uint8_t actually_update(coms_t *coms, bool remove, char *domain, char *ip);
+uint8_t actually_update(coms_t *coms, bool remove, char *domain, char *ip, uint8_t id);
 
 /**
  * Write out ip_hash to hosts.txt.
@@ -65,6 +65,9 @@ uint8_t send_entire_file(int socket, coms_t *coms) {
       exit(7);
     }
   }
+  uint8_t ack;
+  if (recv(socket, &ack, 1, 0) < 0) return 1;
+  send(socket, &(coms->version_num), 1, 0);
   return 0;
 }
 
@@ -160,13 +163,22 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
     ++ip;
     (*((hash_t*) coms->ip_hash))[std::string(domain)] = std::string(ip);
   }
+  uint8_t ack = 1;
+  if (send(new_socket, &(ack), 1, 0) < 0) {
+    perror("Send()");
+    exit(7);
+  }
+
+  uint8_t ver;
+  recv(new_socket, &ver, 1, 0);
+  coms->version_num = ver;
   close(new_socket);
   return 0;
 }
 
 uint8_t recieve_update(coms_t *coms, int socket) {
   // Ack the request
-  uint8_t ack = 1;
+  uint8_t ack = coms->version_num;
   if (send(socket, &(ack), 1, 0) < 0) {
     perror("Send()");
     exit(7);
@@ -174,13 +186,14 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   uint8_t buffer[128];
   uint8_t *curr_loc = buffer - 1;
   struct timeval tv;
-  tv.tv_sec = 1;
+  tv.tv_sec = 2;
   tv.tv_usec = 0;
-  setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+  printf("%d\n", setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv));
   do {
     int bytes;
     if ((bytes = recv(socket, buffer, sizeof(buffer), 0)) < 0) {
       close(socket);
+      printf("cacneed\n");
       return 1;
     }
     curr_loc += bytes;
@@ -192,16 +205,23 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   } while (*domain != ' ');
   *domain = 0;
   ++domain;
-  char *ip = (char*) domain;
+  char *ip =  domain;
   do {
     ++ip;
   } while (*ip != ' ');
   *ip = 0;
   ++ip;
-  return actually_update(coms, remove, domain, ip);
+  char *id = ip;
+  do {
+    ++id;
+  } while (*id != ' ');
+  *id = 0;
+  ++id;
+
+  return actually_update(coms, remove, domain, ip, *id);
 }
 
-uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip, uint16_t own_port) {
+  uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip, uint16_t own_port, uint8_t id) {
   int router_socket = setup_server(0, SOCK_STREAM, false);
   connect_to_tcp(router_socket, router_ip, ROUTER_TCP_PORT_NUM);
 
@@ -220,6 +240,9 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
     }
   }
 
+  bool some_stale = false;
+  bool some_fresh = false;
+  bool this_stale = !(coms->version_num == id);
   // Send out req to all, if don't get ack from all, abort
   for (int i = 0; i < port_cnt; ++i) {
     if (ports[i] == own_port) continue;
@@ -231,26 +254,45 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
     // Let this timeout, if so, continue but return
     uint8_t ack;
     if (recv(new_socket, &ack, 1, 0) < 0) return 1;
+    if (ack == id) {
+      some_fresh = true;
+      close(new_socket);
+      continue;
+    } else {
+      some_stale = true;
+    }
 
-    send(new_socket, (uint8_t*) ((remove ? "1" : "0") + std::string(" ") + std::string(domain) + " " + std::string(ip)).c_str(), strlen(domain) + strlen(ip) + 4, 0);
+    std::string id_str = std::to_string(id);
+    send(new_socket, (uint8_t*) ((remove ? "1" : "0") + std::string(" ") + std::string(domain) + " " + std::string(ip) + " " + id_str).c_str(), strlen(domain) + strlen(ip) + id_str.size() + 6, 0);
     // Let this timeout, if so, continue but return
     if (recv(new_socket, &ack, 1, 0) < 0) return 1;
     close(new_socket);
   }
-  actually_update(coms, remove, domain, ip);
+  if (this_stale)
+    actually_update(coms, remove, domain, ip, id);
 
   uint8_t buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   send(router_socket, buffer, sizeof(dns_server_t*), 0);
   close(router_socket);
-  return 0;
+
+  if (this_stale && !some_fresh) {
+    return 0;
+  } else if (!this_stale && some_stale) {
+    return 9;
+  } else if (this_stale && some_fresh) {
+    return 8;
+  } else if (!this_stale && !some_stale) {
+    return 6;
+  }
+  return 10;
 
   // If return fails, then go to next server, and query if everyone committed
   // If no one comitted, return false, and restart
   // If true, then have that server broadcast out change to everyone who didn't get it yet
 }
 
-uint8_t actually_update(coms_t *coms, bool remove, char *domain, char *ip) {
-  ++coms->version_num;
+uint8_t actually_update(coms_t *coms, bool remove, char *domain, char *ip, uint8_t id) {
+  coms->version_num = id;
   if (remove) {
     ((hash_t*) coms->ip_hash)->erase(std::string(domain));
   } else {

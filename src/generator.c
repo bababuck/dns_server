@@ -71,7 +71,7 @@ static uint8_t domain_cnt;
 int main(int argc, char **argv) {
   arguments_t arguments;
   srand(time(NULL));
-  void init_scoreboard();
+  init_scoreboard();
   domain_cnt = get_domains("hosts.txt", &domains);
   ++domain_cnt;
   domains = realloc(domains, sizeof(char*) * domain_cnt);
@@ -124,18 +124,38 @@ void* update_and_online_wrapper(void *arg) {
   return NULL;
 }
 
-void* add_hosts_wrapper(void *arg) {
+void* add_hosts_fail_wrapper(void *arg) {
   generator_t *generator = (generator_t*) arg;
   char *ip = get_ip();
-  update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num);
+  int id = 0;
+  update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 16);
+  generator->dns_servers[0]->pause = true;
+  sleep(6);
+  int res = update_hosts(generator->dns_servers[1]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 16);
   free(ip);
+  if (res == 6) {
+    printf("All hosts recieved the update");
+  } else if (res == 0) {
+    printf("No hosts recieved the update");
+  } else if (res == 8) {
+    printf("Other hosts recieved the update, not this one, fixed!");
+  } else if (res == 9) {
+    printf("This hosts recieved the update, not other, fixed!");
+  }
   return NULL;
 }
+
+void* add_hosts_wrapper(void *arg) {
+   generator_t *generator = (generator_t*) arg;
+   char *ip = get_ip();
+   update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 1);
+   return NULL;
+ }
 
 void* remove_hosts_wrapper(void *arg) {
   generator_t *generator = (generator_t*) arg;
   char *ip = get_ip();
-  update_hosts(generator->dns_servers[0]->coms, ip, ip, true, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num);
+  update_hosts(generator->dns_servers[0]->coms, ip, ip, true, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 2);
   free(ip);
   return NULL;
 }
@@ -167,17 +187,15 @@ uint8_t run_test(arguments_t *arguments) {
         nanosleep(&ts, NULL);
       }
       if (i == 0) {
-          ++(generator->dns_server_cnt);
-          generator->dns_servers = realloc(generator->dns_servers, generator->dns_server_cnt * sizeof(dns_server_t*));
-          char *ip = get_ip();
-          dns_server_t *new_server = create_dns_server(ip, CLIENT_PORT, DNS_PORT_NUM + generator->dns_server_cnt - 1, false);
-          generator->dns_servers[generator->dns_server_cnt - 1] = new_server;
-          // This needs to be own thread
-          pthread_create(thread, NULL, update_and_online_wrapper, generator->dns_servers[generator->dns_server_cnt - 1]);
+        ++(generator->dns_server_cnt);
+        generator->dns_servers = realloc(generator->dns_servers, generator->dns_server_cnt * sizeof(dns_server_t*));
+        char *ip = get_ip();
+        dns_server_t *new_server = create_dns_server(ip, CLIENT_PORT, DNS_PORT_NUM + generator->dns_server_cnt - 1, false);
+        generator->dns_servers[generator->dns_server_cnt - 1] = new_server;
+
+        pthread_create(thread, NULL, update_and_online_wrapper, generator->dns_servers[generator->dns_server_cnt - 1]);
       }
     }
-    pthread_cancel(*thread);
-    free(thread);
   }
   else if (arguments->make_translation_changes) {
     pthread_t *thread = malloc(sizeof(pthread_t));
@@ -190,13 +208,28 @@ uint8_t run_test(arguments_t *arguments) {
         nanosleep(&ts, NULL);
       }
       if (i == 0) {
-          pthread_create(thread, NULL, add_hosts_wrapper, generator);
+        pthread_create(thread, NULL, add_hosts_wrapper, generator);
       }
       if (i == 0x200) {
         pthread_create(thread, NULL, remove_hosts_wrapper, generator);
       }
     }
-    pthread_cancel(*thread);
+    free(thread);
+  }
+  else {
+    pthread_t *thread = malloc(sizeof(pthread_t));
+    for (uint32_t i = 0; i < 0x4FFF; i += 0x100) {
+      for (uint32_t j = 0; j < 0x100; ++j) {
+        send_single_test(generator, j + i);
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 4000000;
+        nanosleep(&ts, NULL);
+      }
+      if (i == 0) {
+        pthread_create(thread, NULL, add_hosts_wrapper, generator);
+      }
+    }
     free(thread);
   }
   sleep(5);
