@@ -221,7 +221,7 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   return actually_update(coms, remove, domain, ip, *id);
 }
 
-  uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip, uint16_t own_port, uint8_t id) {
+uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip, uint16_t own_port, uint8_t id) {
   int router_socket = setup_server(0, SOCK_STREAM, false);
   connect_to_tcp(router_socket, router_ip, ROUTER_TCP_PORT_NUM);
 
@@ -263,7 +263,7 @@ uint8_t recieve_update(coms_t *coms, int socket) {
     }
 
     std::string id_str = std::to_string(id);
-    send(new_socket, (uint8_t*) ((remove ? "1" : "0") + std::string(" ") + std::string(domain) + " " + std::string(ip) + " " + id_str).c_str(), strlen(domain) + strlen(ip) + id_str.size() + 6, 0);
+    send(new_socket, (uint8_t*) ((remove ? "1" : "0") + std::string(" ") + std::string(domain) + " " + std::string(ip) + " " + id_str).c_str(), strlen(domain) + strlen(ip) + id_str.size() + 5, 0);
     // Let this timeout, if so, continue but return
     if (recv(new_socket, &ack, 1, 0) < 0) return 1;
     close(new_socket);
