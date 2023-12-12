@@ -61,7 +61,7 @@ uint8_t send_entire_file(int socket, coms_t *coms) {
     uint8_t ack;
     if (recv(socket, &ack, 1, 0) < 0) return 1;
     if (send(socket, (uint8_t*) (domain + " " + ip).c_str(), (domain + " " + ip).length() + 1, 0) < 0) {
-      perror("Send()");
+      //      perror("Send()");
       exit(7);
     }
   }
@@ -130,7 +130,7 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
 
   uint8_t request_code = 1; // Saying whole file
   if (send(new_socket, &request_code, 1, 0) < 0) {
-    perror("Send()");
+    //    perror("Send()");
     exit(7);
   }
 
@@ -141,7 +141,7 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
   for (int i = 0; i < trans_cnt; ++i) {
     uint8_t ack = 1;
     if (send(new_socket, &(ack), 1, 0) < 0) {
-      perror("Send()");
+      //      perror("Send()");
       exit(7);
     }
     uint8_t *curr_loc = buffer - 1;
@@ -165,7 +165,7 @@ uint8_t request_hosts(coms_t *coms, uint16_t port, char *ip) {
   }
   uint8_t ack = 1;
   if (send(new_socket, &(ack), 1, 0) < 0) {
-    perror("Send()");
+    //    perror("Send()");
     exit(7);
   }
 
@@ -180,7 +180,7 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   // Ack the request
   uint8_t ack = coms->version_num;
   if (send(socket, &(ack), 1, 0) < 0) {
-    perror("Send()");
+    //    perror("Send()");
     exit(7);
   }
   uint8_t buffer[128];
@@ -188,12 +188,11 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   struct timeval tv;
   tv.tv_sec = 2;
   tv.tv_usec = 0;
-  printf("%d\n", setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv));
+  setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
   do {
     int bytes;
-    if ((bytes = recv(socket, buffer, sizeof(buffer), 0)) < 0) {
+    if ((bytes = recv(socket, buffer, sizeof(buffer), 0)) <= 0) {
       close(socket);
-      printf("cacneed\n");
       return 1;
     }
     curr_loc += bytes;
@@ -217,11 +216,11 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   } while (*id != ' ');
   *id = 0;
   ++id;
-
   return actually_update(coms, remove, domain, ip, *id);
 }
 
-uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip, uint16_t own_port, uint8_t id) {
+uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip, uint16_t own_port, uint8_t id, int8_t fail) {
+  if (fail == -1) return 3;
   int router_socket = setup_server(0, SOCK_STREAM, false);
   connect_to_tcp(router_socket, router_ip, ROUTER_TCP_PORT_NUM);
 
@@ -232,7 +231,7 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
   for (int i = 0; i < port_cnt; ++i) {
     uint8_t ack = 1;
     if (send(router_socket, &(ack), 1, 0) < 0) {
-      perror("Send()");
+      //      perror("Send()");
       exit(7);
     }
     if (recv(router_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
@@ -242,10 +241,11 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
 
   bool some_stale = false;
   bool some_fresh = false;
-  bool this_stale = !(coms->version_num == id);
+  bool this_stale = coms->version_num != id;
   // Send out req to all, if don't get ack from all, abort
   for (int i = 0; i < port_cnt; ++i) {
     if (ports[i] == own_port) continue;
+    if (i == fail) continue;
     int new_socket = setup_server(0, SOCK_STREAM, false);
     connect_to_tcp(new_socket, server_ip, ports[i]);
 
@@ -262,7 +262,7 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
       some_stale = true;
     }
 
-    std::string id_str = std::to_string(id);
+    std::string id_str(1, id);
     send(new_socket, (uint8_t*) ((remove ? "1" : "0") + std::string(" ") + std::string(domain) + " " + std::string(ip) + " " + id_str).c_str(), strlen(domain) + strlen(ip) + id_str.size() + 5, 0);
     // Let this timeout, if so, continue but return
     if (recv(new_socket, &ack, 1, 0) < 0) return 1;

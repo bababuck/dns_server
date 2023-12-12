@@ -128,19 +128,19 @@ void* add_hosts_fail_wrapper(void *arg) {
   generator_t *generator = (generator_t*) arg;
   char *ip = get_ip();
   int id = 0;
-  update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 16);
+  update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 16, 0);
   generator->dns_servers[0]->pause = true;
   sleep(6);
-  int res = update_hosts(generator->dns_servers[1]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 16);
+  int res = update_hosts(generator->dns_servers[1]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 16, 0);
   free(ip);
   if (res == 6) {
-    printf("All hosts recieved the update");
+    printf("All hosts recieved the update\n");
   } else if (res == 0) {
-    printf("No hosts recieved the update");
+    printf("No hosts recieved the update\n");
   } else if (res == 8) {
-    printf("Other hosts recieved the update, not this one, fixed!");
+    printf("Other hosts recieved the update, not this one, fixed!\n");
   } else if (res == 9) {
-    printf("This hosts recieved the update, not other, fixed!");
+    printf("This host recieved the update, not others, fixed!\n");
   }
   return NULL;
 }
@@ -148,14 +148,14 @@ void* add_hosts_fail_wrapper(void *arg) {
 void* add_hosts_wrapper(void *arg) {
    generator_t *generator = (generator_t*) arg;
    char *ip = get_ip();
-   update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 1);
+   update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 1, 0);
    return NULL;
  }
 
 void* remove_hosts_wrapper(void *arg) {
   generator_t *generator = (generator_t*) arg;
   char *ip = get_ip();
-  update_hosts(generator->dns_servers[0]->coms, ip, ip, true, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 2);
+  update_hosts(generator->dns_servers[0]->coms, ip, ip, true, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num, 2, 0);
   free(ip);
   return NULL;
 }
@@ -218,7 +218,7 @@ uint8_t run_test(arguments_t *arguments) {
   }
   else {
     pthread_t *thread = malloc(sizeof(pthread_t));
-    for (uint32_t i = 0; i < 0x4FFF; i += 0x100) {
+    for (uint32_t i = 0; i < 0x8FF; i += 0x100) {
       for (uint32_t j = 0; j < 0x100; ++j) {
         send_single_test(generator, j + i);
         struct timespec ts;
@@ -227,7 +227,7 @@ uint8_t run_test(arguments_t *arguments) {
         nanosleep(&ts, NULL);
       }
       if (i == 0) {
-        pthread_create(thread, NULL, add_hosts_wrapper, generator);
+        pthread_create(thread, NULL, add_hosts_fail_wrapper, generator);
       }
     }
     free(thread);
