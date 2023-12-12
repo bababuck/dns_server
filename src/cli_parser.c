@@ -18,10 +18,13 @@ int parse_cli(int argc, char **argv, arguments_t *arguments) {
   arguments->make_translation_changes = false;
   int c;
 
-  while ((c = getopt(argc, argv, "xst:ar:d:c:")) != -1) {
+  while ((c = getopt(argc, argv, "xst:ar:dc:")) != -1) {
     switch (c) {
     case 's':
       arguments->save = true;
+      break;
+    case 'a':
+      arguments->add_midway = true;
       break;
     case 'd':
       arguments->randomly_disable = true;

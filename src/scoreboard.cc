@@ -133,13 +133,14 @@ uint8_t destroy_scoreboard(scoreboard_t *s) {
 uint8_t write_results(FILE *file, results_t *results) {
   return (uint8_t) 0 <
     fprintf(file,
-            "%.6f,%d,%d,%d,%d,%.6f\n",
+            "%.6f,%d,%d,%d,%d,%.6f,%d\n",
             results->start_time,
             results->id,
             results->dns_id,
             results->rrl_removed,
             results->recieved,
-            results->finish_time);
+            results->finish_time,
+            results->found);
 }
 
 }

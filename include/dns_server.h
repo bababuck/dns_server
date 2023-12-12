@@ -32,6 +32,7 @@ typedef struct {
   uint16_t tcp_port_num;
   char *ip;
   pthread_t *response_thread;
+  bool pause;
 } dns_server_t;
 
 /**

@@ -26,6 +26,7 @@ dns_server_t *create_dns_server(char *scoreboard_ip, uint16_t scoreboard_port, u
   dns_server->response_thread = malloc(sizeof(pthread_t));
   setup_response_thread(dns_server->response_thread, &query_handler, dns_server);
   dns_server->coms = create_coms(dns_server->id, read_host, dns_server->tcp_socket);
+  dns_server->pause = false;
   return dns_server;
 }
 
@@ -46,6 +47,7 @@ void* query_handler(void *_dns_server) {
   message_t dns_message;
   uint8_t buffer[MAX_DNS_BYTES];
   while (true) { // Run until thread killed
+    if (dns_server->pause) continue;
     uint8_t message_len = recieve_message(buffer, MAX_DNS_BYTES, dns_server->socket);
     recieve_request(dns_server, buffer, message_len);
   }
@@ -100,8 +102,8 @@ uint8_t update_and_online(dns_server_t *dns_server) {
   for (int i = 0; i < port_cnt; ++i) {
     uint8_t ack = 1;
     if (send(new_socket, &(ack), 1, 0) < 0) {
-      perror("Send()");
-      exit(7);
+      //      perror("Send()");
+      //  exit(7);
     }
     if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
       recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
