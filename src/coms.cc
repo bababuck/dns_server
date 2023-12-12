@@ -173,6 +173,10 @@ uint8_t recieve_update(coms_t *coms, int socket) {
   }
   uint8_t buffer[128];
   uint8_t *curr_loc = buffer - 1;
+  struct timeval tv;
+  tv.tv_sec = 1;
+  tv.tv_usec = 0;
+  setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
   do {
     int bytes;
     if ((bytes = recv(socket, buffer, sizeof(buffer), 0)) < 0) {
@@ -198,26 +202,23 @@ uint8_t recieve_update(coms_t *coms, int socket) {
 }
 
 uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove, char *domain, char *ip, uint16_t own_port) {
-  int new_socket = setup_server(0, SOCK_STREAM, false);
-  connect_to_tcp(new_socket, router_ip, ROUTER_TCP_PORT_NUM);
+  int router_socket = setup_server(0, SOCK_STREAM, false);
+  connect_to_tcp(router_socket, router_ip, ROUTER_TCP_PORT_NUM);
 
   // Get list of all other servers
   uint8_t port_cnt;
-  recv(new_socket, &port_cnt, 1, 0);
+  recv(router_socket, &port_cnt, 1, 0);
   uint16_t *ports = (uint16_t*) malloc(port_cnt * sizeof(uint16_t));
   for (int i = 0; i < port_cnt; ++i) {
     uint8_t ack = 1;
-    if (send(new_socket, &(ack), 1, 0) < 0) {
+    if (send(router_socket, &(ack), 1, 0) < 0) {
       perror("Send()");
       exit(7);
     }
-    if (recv(new_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
-      recv(new_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
+    if (recv(router_socket, (uint8_t*) &(ports[i]), sizeof(uint16_t), 0) == 1) {
+      recv(router_socket, ((uint8_t*) &(ports[i])) + 1, 1, 0);
     }
   }
-  close(new_socket);
-
-  // TODO: ignore self lol
 
   // Send out req to all, if don't get ack from all, abort
   for (int i = 0; i < port_cnt; ++i) {
@@ -236,8 +237,12 @@ uint8_t update_hosts(coms_t *coms, char *router_ip, char *server_ip, bool remove
     if (recv(new_socket, &ack, 1, 0) < 0) return 1;
     close(new_socket);
   }
+  actually_update(coms, remove, domain, ip);
 
-  return actually_update(coms, remove, domain, ip);
+  uint8_t buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  send(router_socket, buffer, sizeof(dns_server_t*), 0);
+  close(router_socket);
+  return 0;
 
   // If return fails, then go to next server, and query if everyone committed
   // If no one comitted, return false, and restart

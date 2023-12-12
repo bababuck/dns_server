@@ -124,10 +124,18 @@ void* update_and_online_wrapper(void *arg) {
   return NULL;
 }
 
-void* update_hosts_wrapper(void *arg) {
+void* add_hosts_wrapper(void *arg) {
   generator_t *generator = (generator_t*) arg;
   char *ip = get_ip();
   update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num);
+  free(ip);
+  return NULL;
+}
+
+void* remove_hosts_wrapper(void *arg) {
+  generator_t *generator = (generator_t*) arg;
+  char *ip = get_ip();
+  update_hosts(generator->dns_servers[0]->coms, ip, ip, true, "new_domain", "6.6.6.6", generator->dns_servers[0]->tcp_port_num);
   free(ip);
   return NULL;
 }
@@ -173,22 +181,19 @@ uint8_t run_test(arguments_t *arguments) {
   }
   else if (arguments->make_translation_changes) {
     pthread_t *thread = malloc(sizeof(pthread_t));
-    for (uint32_t i = 0; i < 0x8FF; i += 0xFF) {
-      for (uint32_t j = 0; j < 0xFF; ++j) {
+    for (uint32_t i = 0; i < 0x8FF; i += 0x100) {
+      for (uint32_t j = 0; j < 0x100; ++j) {
         send_single_test(generator, j + i);
         struct timespec ts;
         ts.tv_sec = 0;
-        ts.tv_nsec = 3000000;
+        ts.tv_nsec = 4000000;
         nanosleep(&ts, NULL);
       }
       if (i == 0) {
-          ++(generator->dns_server_cnt);
-          generator->dns_servers = realloc(generator->dns_servers, generator->dns_server_cnt * sizeof(dns_server_t*));
-          char *ip = get_ip();
-          dns_server_t *new_server = create_dns_server(ip, CLIENT_PORT, DNS_PORT_NUM + generator->dns_server_cnt - 1, false);
-          generator->dns_servers[generator->dns_server_cnt - 1] = new_server;
-          // This needs to be own thread
-          pthread_create(thread, NULL, update_hosts_wrapper, generator);
+          pthread_create(thread, NULL, add_hosts_wrapper, generator);
+      }
+      if (i == 0x200) {
+        pthread_create(thread, NULL, remove_hosts_wrapper, generator);
       }
     }
     pthread_cancel(*thread);
