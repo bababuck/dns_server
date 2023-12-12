@@ -68,7 +68,7 @@ uint8_t add_dns_server(router_t *router, dns_server_t *dns) {
 void* check_servers(void *router) {
   router_t *r = (router_t*) router;
   while (true) {
-    query_response_time(router, 60);
+    query_response_time(router, 3);
   }
   return NULL;
 }
@@ -140,8 +140,7 @@ uint8_t query_response_time(router_t *router, uint8_t allowed_seconds) {
     if (len == -1) {
       break;
     }
-    printf("Recieved query respoonse id=%d\n", *buffer);
-    ++cnt;
+    //    printf("Recieved query respoonse id=%d %d\n", *buffer, offline[0]);
     for (int i = 0; i < cnt; ++i) {
       if (*buffer == offline[i]) {
         for (int j = i + 1; j < cnt; ++j) {
@@ -158,6 +157,7 @@ uint8_t query_response_time(router_t *router, uint8_t allowed_seconds) {
   }
   for (int i = 0; i < cnt; ++i) {
     remove_server(router, offline[i]);
+    printf("REMOVED %d\n", offline[i]);
   }
   free(offline);
   return 0;
@@ -183,7 +183,11 @@ uint8_t forward_request(router_t *router, uint8_t *message, uint8_t message_len,
       ++router->curr_server;
     }
   }
-  printf("Forwarded to server %d\n", router->servers[chosen_server]->id);
+  if (router->server_cnt == 0) {
+    printf("SYSTEM DOWN\n");
+    return 1;
+  }
+  //  printf("Forwarded to server %d\n", router->servers[chosen_server]->id);
   *dns_id = router->servers[chosen_server]->id;
   uint8_t error = send_packet(/*port_num=*/router->servers[chosen_server]->port_num, /*ip=*/router->servers[chosen_server]->ip, /*socket_info=*/router->socket, message, message_len);
   pthread_mutex_unlock(router->mutex);

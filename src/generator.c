@@ -112,6 +112,7 @@ uint8_t destroy_generator(generator_t *generator) {
 
 uint8_t run_test(arguments_t *arguments) {
   generator_t *generator = create_generator(arguments);
+  /*
   ++(generator->dns_server_cnt);
   generator->dns_servers = realloc(generator->dns_servers, generator->dns_server_cnt * sizeof(dns_server_t*));
   char *ip = get_ip();
@@ -124,10 +125,25 @@ uint8_t run_test(arguments_t *arguments) {
   update_hosts(generator->dns_servers[0]->coms, ip, ip, false, "test", "69.69.69.69", generator->dns_servers[0]->tcp_port_num);
   free(ip);
   sleep(10);
-  send_single_test(generator, 0);
-  send_single_test(generator, 1);
-  send_single_test(generator, 2);
-  sleep(10);
+  */
+  for (uint32_t i = 0; i < 0x8FF; i += 0xFF) {
+    for (uint32_t j = 0; j < 0xFF; ++j) {
+      send_single_test(generator, j + i);
+      struct timespec ts;
+      ts.tv_sec = 0;
+      ts.tv_nsec = 100000;
+      nanosleep(&ts, NULL);
+    }
+    sleep(1);
+    if (i == 0) {
+      fflush(stdout);
+      --(generator->dns_server_cnt);
+      fflush(stdout);
+      destroy_dns_server(generator->dns_servers[generator->dns_server_cnt]);
+      fflush(stdout);
+    }
+  }
+  sleep(15);
   destroy_generator(generator);
   return 0;
 }

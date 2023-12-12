@@ -4,7 +4,6 @@
 #include <mutex>
 #include <deque>
 #include <stdio.h>
-
 extern "C" {
 
 #include "../include/dns.h"
@@ -18,11 +17,12 @@ typedef struct {
   uint8_t rrl_removed;
   uint8_t recieved;
   double finish_time;
+  uint8_t found;
 } results_t;
 
 std::chrono::time_point<std::chrono::steady_clock> start_time;
 
-uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id);
+  uint8_t recieve_dns_answer(scoreboard_t *s, uint16_t id, uint8_t valid_trans);
 
 /**
  * Write an transaction result to an open file.
@@ -45,15 +45,15 @@ double get_time_elapsed() {
 }
 
 uint8_t recieve_generated_req(scoreboard_t *s, uint16_t id, uint8_t dns_id, uint8_t rrl_removed, double elapsed_time) {
-  printf("Scoreboard recieved generated test #%d\n", id);
-
-  results_t results = {.start_time=elapsed_time, .id=id, .dns_id=dns_id, .recieved=0, .rrl_removed=rrl_removed, .finish_time=0.0};
+  results_t results = {.start_time=elapsed_time, .id=id, .dns_id=dns_id, .recieved=0, .rrl_removed=rrl_removed, .finish_time=0.0, .found=0};
   if (rrl_removed) {
     write_results((FILE*) s->results_file, &results);
     return 0;
   }
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
   ((std::deque<results_t>*) (s->queue))->push_back(results);
+  //  printf("Scoreboard recieved generated test #%d\n", id);
+
   return 0;
 }
 
@@ -73,13 +73,13 @@ void* dns_response_handler(void *_scoreboard) {
       perror("Parsing message failed.");
       exit(1);
     }
-    printf("Scoreboard recieved dns response #%d\n", dns_message.header.id);
-    recieve_dns_answer(scoreboard, dns_message.header.id);
+    recieve_dns_answer(scoreboard, dns_message.header.id, dns_message.header.rcode == 0x3 ? 0 : 1);
+    //    printf("Scoreboard recieved dns response #%d\n", dns_message.header.id);
   }
   return NULL;
 }
 
-uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id) {
+  uint8_t recieve_dns_answer(scoreboard_t *s, uint16_t id, uint8_t valid_trans) {
   double elapsed_time = get_time_elapsed();
   const std::lock_guard<std::mutex> lock(*((std::mutex*) s->lock));
   bool found = false;
@@ -88,16 +88,17 @@ uint8_t recieve_dns_answer(scoreboard_t *s, uint8_t id) {
       it->finish_time = elapsed_time;
       it->recieved = 1;
       found = true;
+      it->found = valid_trans;
     }
   }
-  while (!((std::deque<results_t>*) (s->queue))->empty() && (((std::deque<results_t>*) (s->queue))->front().recieved || ((std::deque<results_t>*) (s->queue))->size() > 100)) {
+  while (!((std::deque<results_t>*) (s->queue))->empty() && (((std::deque<results_t>*) (s->queue))->front().recieved || ((std::deque<results_t>*) (s->queue))->size() > 0xFFFF)) {
     write_results((FILE*) s->results_file, &(((std::deque<results_t>*) (s->queue))->front()));
     ((std::deque<results_t>*) (s->queue))->pop_front();
   }
   if (found) {
     return 0;
   }
-  fprintf(stderr, "DNS answer had no corresponding request!");
+  //  fprintf(stderr, "DNS answer had no corresponding request! %d\n", ((std::deque<results_t>*) (s->queue))->size());
   return 1;
 }
 
